@@ -344,7 +344,8 @@ When changing this option, users are forced to re-authenticate via device
 authentication on the next login.
 ```
 
-```{note}
+```{admonition} Set the redirect URI
+:class: tip
 Make sure that the application in the Microsoft Entra admin center has a
 redirect URI configured as described in
 <a href="/howto/configure-authd/?broker=msentraid#application-registration">
