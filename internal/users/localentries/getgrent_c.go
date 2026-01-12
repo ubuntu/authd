@@ -25,8 +25,8 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/ubuntu/authd/internal/decorate"
 	"github.com/ubuntu/authd/internal/users/types"
-	"github.com/ubuntu/decorate"
 )
 
 // types.GroupEntry represents a group entry.

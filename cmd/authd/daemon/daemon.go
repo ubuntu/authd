@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/viper"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/daemon"
+	"github.com/ubuntu/authd/internal/decorate"
 	"github.com/ubuntu/authd/internal/services"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/log"
-	"github.com/ubuntu/decorate"
 )
 
 // cmdName is the binary name for the agent.
