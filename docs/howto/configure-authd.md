@@ -346,7 +346,9 @@ authentication on the next login.
 
 ```{note}
 Make sure that the application in the Microsoft Entra admin center has a
-redirect URI configured as described in [Redirect URI](#redirect-uri).
+redirect URI configured as described in
+<a href="/howto/configure-authd/?broker=msentraid#application-registration">
+the application registration guidelines for Microsoft Entra ID<a/>.
 ```
 
 ## Restart the broker
