@@ -62,7 +62,13 @@ You can increase the verbosity of the logs in different ways.
 
 ### PAM module
 
-Append `debug=true` to all the lines with `pam_authd_exec.so` or `pam_authd.so` in the PAM configuration files (`common-auth`, `gdm-authd`...) in `/etc/pam.d/` to increase the verbosity of the PAM messages.
+Append `debug=true` to all the lines with `pam_authd_exec.so` or `pam_authd.so`
+in the PAM configuration files in `/etc/pam.d/` to increase the verbosity of the
+PAM messages:
+
+```shell
+sudo sed -i '/pam_authd_exec\.so\|pam_authd\.so/ s/$/ debug=true/' /etc/pam.d/*
+```
 
 ### NSS module
 
