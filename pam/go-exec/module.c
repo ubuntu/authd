@@ -1,6 +1,6 @@
 // TiCS: disabled // This file is compiled indirectly through go generate.
 
-/* A simple PAM wrapper for GO based pam modules */
+/* A simple PAM wrapper for Go based pam modules */
 
 #define G_LOG_DOMAIN "authd-pam-exec"
 
