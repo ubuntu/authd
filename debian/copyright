@@ -40,18 +40,6 @@ License: GPL-3
  On Debian systems, the complete text of the GNU General
  Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
 
-Files: pam/integration-tests/pam_mkhomedir/pam_mkhomedir.c
-Copyright: 2009 Red Hat, Inc.
-License: LGPL-2+
-
-Files: pam/internal/gdm/extensions/gdm-custom-json-pam-extension.h
-Copyright: 2023 Canonical Ltd.
-License: GPL-3+
-
-Files: pam/internal/gdm/extensions/gdm-pam-extensions-common.h
-Copyright: 2017 Red Hat, Inc.
-License: GPL-2+
-
 Files: vendor/go.etcd.io/bbolt/*
 Copyright: 2013 Ben Johnson
 License: MIT
