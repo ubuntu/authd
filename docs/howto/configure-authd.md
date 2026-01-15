@@ -320,6 +320,18 @@ to which only the user with the [owner role](#configure-allowed-users) is added:
 (ref::device-registration)=
 ## Configure device registration
 
+:::::{tab-set}
+:sync-group: broker
+
+::::{tab-item} Google IAM
+:sync: google
+
+The Google IAM broker does not support device registration.
+::::
+
+::::{tab-item} Microsoft Entra ID
+:sync: msentraid
+
 When using the Microsoft Entra ID broker, you can enable automatic device
 registration, which allows administrators to manage registered devices in the
 Microsoft Entra admin center.
@@ -348,10 +360,10 @@ authentication on the next login.
 ```{admonition} Set the redirect URI
 :class: tip
 Make sure that the application in the Microsoft Entra admin center has a
-redirect URI configured as described in
-<a href="/howto/configure-authd/?broker=msentraid#application-registration">
-the application registration guidelines for Microsoft Entra ID<a/>.
+redirect URI configured as described in [Redirect URI](#redirect-uri).
 ```
+::::
+:::::
 
 ## Restart the broker
 
