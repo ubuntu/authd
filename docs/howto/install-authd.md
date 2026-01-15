@@ -90,4 +90,19 @@ At this stage, you have installed the main service and an identity broker to
 authenticate against Microsoft Entra ID.
 
 ::::
+
+::::{tab-item} OIDC
+:sync: oidc
+
+To install the generic OIDC broker, run the following command:
+
+```shell
+sudo snap install authd-oidc
+```
+
+At this stage, you have installed the main service and an identity broker to
+authenticate against any OIDC provider.
+
+::::
+
 :::::
