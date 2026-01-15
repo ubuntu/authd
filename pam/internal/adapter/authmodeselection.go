@@ -2,7 +2,6 @@ package adapter
 
 import (
 	"context"
-	"fmt"
 
 	tea_list "github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -231,7 +230,7 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 		if err != nil {
 			return pamError{
 				status: pam.ErrSystem,
-				msg:    fmt.Sprintf("could not get authentication modes: %v", err),
+				msg:    err.Error(),
 			}
 		}
 
