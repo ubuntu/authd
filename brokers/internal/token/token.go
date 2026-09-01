@@ -20,9 +20,10 @@ type AuthCachedInfo struct {
 	UserInfo               info.User
 	DeviceRegistrationData []byte
 	// DeviceRegistrationDataObtainedAt stores the Unix timestamp of the fresh
-	// device registration data. Entra can need time to replicate a new device,
-	// so a confirmed device-authentication failure inside the replication window
-	// keeps the data instead of discarding it.
+	// device registration data, and is cleared once a group lookup succeeds with
+	// it. Entra can need time to replicate a new device, so a confirmed
+	// device-authentication failure inside the replication window keeps the data
+	// instead of discarding it.
 	DeviceRegistrationDataObtainedAt int64 `json:",omitempty"`
 	DeviceIsDisabled                 bool
 	UserIsDisabled                   bool
