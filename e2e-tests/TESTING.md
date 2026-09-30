@@ -114,6 +114,10 @@ source changes. Use `--force` to rebuild them regardless.
 This initializes the YARF git submodule and installs it into a Python virtual
 environment.
 
+`setup-yarf.sh` uses the combined `e2e-tests/uv.lock` and requires it to be up to
+date. After updating the YARF submodule checkout, run `cd e2e-tests && uv lock`
+and commit the refreshed `uv.lock` together with the submodule update.
+
 ## Running the tests
 
 ```bash
