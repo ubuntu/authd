@@ -5,13 +5,19 @@ myst:
 ---
 
 (contribute)=
+
 # General contribution guidelines
 
-A big welcome and thank you for considering making a contribution to authd and Ubuntu! It’s people like you that help make these products a reality for users in our community.
-
-By agreeing to follow these guidelines the contribution process should be easy and effective for everyone involved. This also communicates that you agree to respect the time of the developers working on this project. In return, we will reciprocate that respect by addressing your issues, assessing proposed changes and helping you finalize your pull requests.
-
 These are mostly guidelines, not rules. Use your best judgment and feel free to propose changes to this document in a pull request.
+
+:::{admonition} Specific contributing guides
+:class: tip
+If you are interested in specific guidance on contributing to the code
+or docs, it is provided in the following pages:
+
+* [Contributing to the code](/contributing/code)
+* [Contributing to the documentation](/contributing/docs)
+:::
 
 ## Code of conduct
 
@@ -21,8 +27,8 @@ We take our community seriously, holding ourselves and other contributors to hig
 
 Contributions are made to this project via Issues and Pull Requests (PRs). These are some general guidelines that cover both:
 
-* To report security vulnerabilities, use the advisories page of the repository and not a public bug report. Please use [launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug), which is monitored by our security team. On an Ubuntu machine, it's best to use `ubuntu-bug authd` to collect relevant information.
-* General issues or feature requests should be reported to the [GitHub project](https://github.com/canonical/authd/issues)
+* To report security vulnerabilities, use the advisories page of the repository and not a public bug report. Please use [Launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug), which is monitored by our security team. On an Ubuntu machine, it's best to use `ubuntu-bug authd` to collect relevant information.
+* General issues or feature requests should be reported on [GitHub](https://github.com/canonical/authd/issues)
 * Existing Issues and PRs should be searched for on the [project's repository](https://github.com/canonical/authd) before creating your own.
 * While we work hard to ensure that issues are handled in a timely manner, it can take time to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
 * If you've never contributed before, see [this post on ubuntu.com](https://ubuntu.com/community/contribute) for resources and tips on how to get started.
@@ -47,7 +53,7 @@ For changes that address core functionality or that would require breaking chang
 
 In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr):
 
-1. Fork the repository to your own Github account.
+1. Fork the repository to your own GitHub account.
 1. Clone the fork to your machine.
 1. Create a branch locally with a succinct but descriptive name.
 1. Commit changes to that branch.
@@ -58,8 +64,6 @@ In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susa
 :::{note}
 PRs will trigger unit and integration tests with and without race detection, linting and formatting validations, static and security checks, and freshness of generated files verification. All these tests must pass before any merge into the main branch.
 :::
-
-Once merged into the main branch, `po` files and any documentation change will be automatically updated. Updates to these files are therefore not necessary in the pull request itself, which helps minimize diff review.
 
 The authd documentation is published in **edge-docs** and **stable-docs** versions. Only the edge version is updated when documentation changes are merged into the main branch.
 If a documentation change should be applied to the stable documentation *before* the next release, create a separate PR

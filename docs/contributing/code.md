@@ -6,6 +6,15 @@ myst:
 
 # Contributing to the code
 
+authd consists of multiple components. These are described in the [architecture
+overview](explanation::authd-architecture).
+
+For using and testing authd, one or more brokers need to be available, which
+run on the host to interface with remote identity providers.
+
+Steps for building the components, testing authd, and contributing to the code,
+are described on this page.
+
 ## Required dependencies
 
 This project has several build dependencies. You can install these dependencies from the top of the source tree using the `apt` command as follows:
@@ -25,7 +34,7 @@ The project consists of the following binaries:
 * `pam_authd_exec.so`, `authd-pam`: A PAM module and its helper executable (used by other PAM applications).
 * `libnss_authd.so`: An NSS module.
 
-The project can be built as a Debian package. This process will compile all the binaries, run the test suite and produce the Debian packages.
+authd can be built as a Debian package. This process will compile all the binaries, run the test suite and produce the Debian packages.
 
 Alternatively, for development purposes, each binary can be built manually and separately.
 
@@ -33,7 +42,9 @@ Alternatively, for development purposes, each binary can be built manually and s
 
 Building the Debian package from source is the most straightforward and standard method for compiling the binaries and running the test suite. To do this, run the following commands from the top of the source tree:
 
-> This is required to vendorize the Rust crates and must be done only once.
+:::{note}
+This is required to vendorize the Rust crates and must be done only once.
+:::
 
 ```shell
 sudo apt install libssl-dev
@@ -144,5 +155,5 @@ The test suite must pass before merging the PR to our main branch. Any new featu
 
 ## Code style
 
-This project follow the Go code-style. For more detailed information about the code style in use, please check <https://google.github.io/styleguide/go/>.
+This project follows Google Go style conventions. For more detailed information about the code style in use, please check <https://google.github.io/styleguide/go/>.
 
