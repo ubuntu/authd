@@ -791,7 +791,7 @@ Install the authd package from the candidate PPA and the snaps from the candidat
 1. Go to https://launchpad.net/~ubuntu-enterprise-desktop/+archive/ubuntu/authd-candidate/+packages
 2. Click "Copy packages" in the top right
 3. Select the authd packages for all currently supported Ubuntu versions
-4. Destination PPA: authd stable
+4. Destination PPA: `authd [~ubuntu-enterprise-desktop/ubuntu/authd]`
 5. Destination series: The the same series
 6. Copy options: Rebuild the copied sources (because we build for more architectures in the stable PPA than in the candidate PPA)
 
