@@ -471,10 +471,10 @@ func AcquireTokenByMFAFlow(ctx context.Context, clientID, tenantID string, data 
 		return nil, fmt.Errorf("failed to extract access token from MFA result: %v", err)
 	}
 
-	// The access token from the native MFA flow is issued for the Entra native API
-	// and cannot be used with the standard OIDC UserInfo endpoint (different
-	// audience). Recover non-authoritative token extras from the access token only;
-	// broker identity binding parses the same access token after verifying it.
+	// The MFA token is issued for the Entra native API and cannot be used with
+	// the standard OIDC UserInfo endpoint. Preserve claim extras for scope lookup;
+	// the broker derives identity from the access token and checks it against the
+	// session.
 	extras := map[string]interface{}{}
 	if accessExtras := tokenExtrasFromAccessToken(ctx, accessToken); len(accessExtras) > 0 {
 		for k, v := range accessExtras {

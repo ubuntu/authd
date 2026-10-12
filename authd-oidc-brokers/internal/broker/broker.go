@@ -166,17 +166,11 @@ func (s *session) loadAuthInfo(path string) (*token.AuthCachedInfo, error) {
 	return authInfo, nil
 }
 
-// verifyAndExtractEntraUserInfo verifies the Entra auth access token's RS256
-// signature against the tenant JWKS and extracts user info from that verified
-// access token. It does NOT cross-check the username against the session; first
-// login does that via userInfoFromTokenExtras.
-func (b *Broker) verifyAndExtractEntraUserInfo(ctx context.Context, token *oauth2.Token) (info.User, error) {
+// extractEntraUserInfo decodes identity claims from an Entra access token.
+func (b *Broker) extractEntraUserInfo(token *oauth2.Token) (info.User, error) {
 	ep, ok := providers.ProviderAs[himmelblau.EntraAuthProvider](b.provider)
 	if !ok {
 		return info.User{}, errors.New("provider does not support Entra authentication")
-	}
-	if err := ep.VerifyAccessToken(ctx, b.cfg.issuerURL, token.AccessToken); err != nil {
-		return info.User{}, fmt.Errorf("access token verification failed: %w", err)
 	}
 
 	userInfo, err := ep.UserInfoFromAccessToken(token.AccessToken)
@@ -191,12 +185,10 @@ func (b *Broker) verifyAndExtractEntraUserInfo(ctx context.Context, token *oauth
 	return userInfo, nil
 }
 
-// userInfoFromTokenExtras is verifyAndExtractEntraUserInfo plus a cross-check
-// that the returned access-token identity matches the username the user
-// authenticated as. Used on first login (finishEntraAuth), where the username
-// has not yet been bound to a verified identity.
-func (b *Broker) userInfoFromTokenExtras(ctx context.Context, session *session, token *oauth2.Token) (info.User, error) {
-	userInfo, err := b.verifyAndExtractEntraUserInfo(ctx, token)
+// userInfoFromEntraAccessToken checks first-login access-token identity against
+// the session username and any cached provider ID.
+func (b *Broker) userInfoFromEntraAccessToken(session *session, token *oauth2.Token) (info.User, error) {
+	userInfo, err := b.extractEntraUserInfo(token)
 	if err != nil {
 		return info.User{}, err
 	}
@@ -217,8 +209,7 @@ func (b *Broker) userInfoFromTokenExtras(ctx context.Context, session *session, 
 //
 // When userInfoOverride is nil, the default verified OIDC ID token path
 // (getUserInfo) is used. Callers that already resolved user info through a
-// different trust path (e.g. a verified Entra MFA access token) can pass it
-// directly.
+// different path (e.g. access-token claims from Entra MFA) can pass it directly.
 func (b *Broker) populateAuthInfo(ctx context.Context, session *session, t *oauth2.Token, rawIDToken string, userInfoOverride *info.User) (*token.AuthCachedInfo, string, isAuthenticatedDataResponse) {
 	mp, mpOK := providers.ProviderAs[providers.MetadataProvider](b.provider)
 	var extraFields map[string]interface{}
@@ -2486,9 +2477,8 @@ func (b *Broker) finishEntraAuth(ctx context.Context, session *session, mfaToken
 
 	// The MFA token is issued for the Entra native API audience, so standard OIDC
 	// ID token verification (getUserInfo) would fail. Extract user info from the
-	// access token after verifying it, then cross-check it against the session
-	// username.
-	userInfo, err := b.userInfoFromTokenExtras(ctx, session, t)
+	// access-token claims, then cross-check it against the session username.
+	userInfo, err := b.userInfoFromEntraAccessToken(session, t)
 	if err != nil {
 		log.Errorf(context.Background(), "could not get user info: %s", err)
 		return AuthDenied, errorMessageForDisplay(err, "Could not get user info")
@@ -2545,8 +2535,8 @@ func (b *Broker) finishEntraAuth(ctx context.Context, session *session, mfaToken
 		}
 	}
 
-	// Fetch groups. The MFA flow just performed a live provider verification, so a
-	// group-fetch failure here is not a liveness signal: fall back to cached groups
+	// Fetch groups. The MFA flow just authenticated with the provider, so a
+	// group-fetch failure is not a liveness signal: fall back to cached groups
 	// on a returning auth, and only deny first-time logins that have no cached groups.
 	groups, err := b.getGroups(ctx, session, authInfo)
 	if err != nil {
@@ -3083,21 +3073,10 @@ func (b *Broker) refreshEntraToken(ctx context.Context, session *session, oldTok
 		}
 	}
 
-	// Refresh the cached user info from the verified refreshed access token's
-	// claims. Keep the cached gecos if the refreshed token omits one, and keep
-	// groups (those are refreshed separately by getGroups). Verification can hit
-	// the network itself (JWKS fetch), so give it its own request timeout rather
-	// than sharing whatever remains after the token refresh call.
-	verifyCtx, verifyCancel := context.WithTimeout(ctx, maxRequestDuration)
-	defer verifyCancel()
-	if err := ep.VerifyAccessToken(verifyCtx, b.cfg.issuerURL, newTok.AccessToken); err != nil {
-		// Refresh-token rotation has already succeeded server-side. Preserve the
-		// rotated token even though this login is denied, otherwise a local issue
-		// such as clock skew can strand the cache with a dead refresh token.
-		cacheRotatedToken("verification failure")
-		return oldToken, fmt.Errorf("access token verification failed: %w", err)
-	}
-	userInfo, err := ep.UserInfoFromAccessToken(newTok.AccessToken)
+	// Refresh user info from the refreshed access token's claims. Keep cached
+	// gecos if the token omits one, and keep groups (those are refreshed separately
+	// by getGroups).
+	userInfo, err := b.extractEntraUserInfo(newTok)
 	if err != nil {
 		cacheRotatedToken("user info extraction failure")
 		return oldToken, fmt.Errorf("could not refresh user info from the refreshed Entra token: %w", err)
@@ -3112,9 +3091,6 @@ func (b *Broker) refreshEntraToken(ctx context.Context, session *session, oldTok
 	if err := b.provider.VerifyUsername(session.username, userInfo.Name); err != nil {
 		cacheRotatedToken("username verification failure")
 		return oldToken, fmt.Errorf("username verification failed: %w", err)
-	}
-	if !filepath.IsAbs(userInfo.Home) {
-		userInfo.Home = filepath.Join(b.cfg.homeBaseDir, userInfo.Home)
 	}
 	if userInfo.Gecos == "" {
 		userInfo.Gecos = oldToken.UserInfo.Gecos
