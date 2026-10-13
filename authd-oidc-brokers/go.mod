@@ -2,7 +2,7 @@ module github.com/canonical/authd/authd-oidc-brokers
 
 go 1.26.0
 
-toolchain go1.26.7
+toolchain go1.26.9
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.2
