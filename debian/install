@@ -9,6 +9,9 @@ usr/bin/authctl /usr/bin/
 # Install authd config file
 debian/authd-config/authd.yaml /etc/authd/
 
+# Rename the authd PPA source after a release upgrade.
+debian/rename-authd-ppa-source.sh /usr/lib/authd/
+
 # Allow the release upgrader to retarget the stable authd PPA.
 debian/authd-release-upgrades.cfg /etc/update-manager/release-upgrades.d/
 
