@@ -1,8 +1,8 @@
-authd (0.7.1+git261012+1429+a4f36b81) stonking; urgency=medium
+authd (0.7.1+git261013+1446+17de1e8f) stonking; urgency=medium
 
-  * Github build. Run id: 38245394336. Run number: 1429.
+  * Github build. Run id: 38435147120. Run number: 1446.
 
- -- Adrian <adrian.dombeck@canonical.com>  Mon, 12 Oct 2026 11:55:01 +0000
+ -- adombeck <18482300+adombeck@users.noreply.github.com>  Tue, 13 Oct 2026 17:02:05 +0000
 
 authd (0.7.1) stonking; urgency=medium
 
