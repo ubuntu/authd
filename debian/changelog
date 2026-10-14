@@ -1,3 +1,10 @@
+authd (0.7.1~ubuntu24.04.2) noble; urgency=medium
+
+  * debian/install: Preserve the authd PPA during Ubuntu upgrades
+  * debian/install: Avoid stale release names on the authd PPA source
+
+ -- Adrian Dombeck <adrian.dombeck@canonical.com>  Wed, 14 Oct 2026 12:58:48 +0200
+
 authd (0.7.1~ubuntu24.04.1) noble; urgency=medium
 
   * debian/rules: Allow newer Noble GNOME Shell builds
