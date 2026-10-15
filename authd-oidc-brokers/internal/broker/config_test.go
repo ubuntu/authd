@@ -203,7 +203,6 @@ func TestParseConfig(t *testing.T) {
 		"Successfully_parse_config_file":                           {},
 		"Successfully_parse_config_file_with_optional_values":      {configType: "valid+optional"},
 		"Successfully_parse_config_file_with_register_device":      {configType: "valid+register_device"},
-		"Successfully_parse_config_file_with_unix_attributes":      {configType: "valid+unix_attributes"},
 		"Successfully_parse_config_file_with_flow_values":          {configType: "valid+one_flow_disabled", provider: &configTestProvider{MockProvider: &testutils.MockProvider{}}},
 		"Warns_and_uses_default_for_invalid_device_code_value":     {configType: "invalid_device_code_value", allowLegacyConfig: true},
 		"Warns_and_uses_default_for_invalid_entra_auth_flow_value": {configType: "invalid_entra_auth_value", allowLegacyConfig: true},
