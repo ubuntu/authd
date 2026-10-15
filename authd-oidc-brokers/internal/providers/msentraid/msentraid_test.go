@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -42,42 +43,32 @@ func TestNew(t *testing.T) {
 func TestParseUnixID(t *testing.T) {
 	t.Parallel()
 
-	validInt64 := int64(1001)
-	validFloat64 := float64(1002)
-	validNumber := json.Number("1003")
-	valid := uint32(1001)
+	// The Graph SDK stores extension property numbers as *float64, and String or
+	// Boolean typed properties as *string or *bool. The fixtures use those shapes.
+	ref := func(v float64) *float64 { return &v }
+	id := func(v uint32) *uint32 { return &v }
+	stringValue := "1001"
+	boolValue := true
 
 	tests := map[string]struct {
 		value   any
 		want    *uint32
 		wantErr bool
 	}{
-		"Absent":                {value: nil},
-		"Int64":                 {value: int64(1001), want: &valid},
-		"Pointer_int64":         {value: &validInt64, want: &valid},
-		"Float64":               {value: float64(1002), want: func() *uint32 { v := uint32(1002); return &v }()},
-		"Pointer_float64":       {value: &validFloat64, want: func() *uint32 { v := uint32(1002); return &v }()},
-		"JSON_number":           {value: validNumber, want: func() *uint32 { v := uint32(1003); return &v }()},
-		"String_is_rejected":    {value: "1001", wantErr: true},
-		"Boolean_is_rejected":   {value: true, wantErr: true},
-		"Negative_is_rejected":  {value: int64(-1), wantErr: true},
-		"Zero_is_rejected":      {value: int64(0), wantErr: true},
-		"Fraction_is_rejected":  {value: float64(1001.5), wantErr: true},
-		"Too_large_is_rejected": {value: int64(2147483648), wantErr: true},
-		"Float64_too_large":     {value: float64(1e100), wantErr: true},
-		"Reserved_65534":        {value: int64(65534), wantErr: true},
-		"Reserved_65535":        {value: int64(65535), wantErr: true},
-		"Reserved_max_uint32":   {value: uint64(1<<32 - 1), wantErr: true},
-
-		"JSON_number_with_zero_fraction":              {value: json.Number("1000.0"), want: func() *uint32 { v := uint32(1000); return &v }()},
-		"JSON_number_with_exponent":                   {value: json.Number("1e3"), want: func() *uint32 { v := uint32(1000); return &v }()},
-		"JSON_number_fraction_is_rejected":            {value: json.Number("1001.5"), wantErr: true},
-		"JSON_number_rounding_to_integer_is_rejected": {value: json.Number("1.0000000000000000001"), wantErr: true},
-		"JSON_number_negative_fraction_is_rejected":   {value: json.Number("-1.0"), wantErr: true},
-		"JSON_number_too_large_is_rejected":           {value: json.Number("1e10"), wantErr: true},
-		"JSON_number_huge_exponent_is_rejected":       {value: json.Number("1e1000000001"), wantErr: true},
-		"JSON_number_hex_syntax_is_rejected":          {value: json.Number("0x10"), wantErr: true},
-		"JSON_number_fraction_syntax_is_rejected":     {value: json.Number("3/1"), wantErr: true},
+		"Absent":                      {value: nil},
+		"Pointer_to_nil":              {value: (*float64)(nil)},
+		"Pointer_to_integer":          {value: ref(1001), want: id(1001)},
+		"Bare_integer":                {value: float64(1002), want: id(1002)},
+		"Max_int32_is_accepted":       {value: ref(math.MaxInt32), want: id(math.MaxInt32)},
+		"Negative_is_rejected":        {value: ref(-1), wantErr: true},
+		"Zero_is_rejected":            {value: ref(0), wantErr: true},
+		"Fraction_is_rejected":        {value: ref(1001.5), wantErr: true},
+		"Too_large_is_rejected":       {value: ref(2147483648), wantErr: true},
+		"Far_too_large_is_rejected":   {value: ref(1e100), wantErr: true},
+		"Reserved_65534":              {value: ref(65534), wantErr: true},
+		"Reserved_65535":              {value: ref(65535), wantErr: true},
+		"String_property_is_rejected": {value: &stringValue, wantErr: true},
+		"Bool_property_is_rejected":   {value: &boolValue, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -108,13 +99,17 @@ func TestProcessSecurityGroupsWithGID(t *testing.T) {
 		group.SetAdditionalData(map[string]any{"extension_gidNumber": gid})
 		return group
 	}
+	// The Graph SDK hands extension property values over as pointers, so the
+	// fixtures pass the same shapes: *float64 for numbers, *string for strings.
+	gidValue := func(v float64) *float64 { return &v }
+	strValue := func(v string) *string { return &v }
 
 	t.Run("Valid_remote_and_local_groups", func(t *testing.T) {
 		t.Parallel()
 
 		groups, err := msentraid.ProcessSecurityGroupsWithGID([]msgraphmodels.Groupable{
-			makeGroup("remote-id", "Engineering", int64(2001)),
-			makeGroup("local-id", "linux-sudo", int64(9999)),
+			makeGroup("remote-id", "Engineering", gidValue(2001)),
+			makeGroup("local-id", "linux-sudo", gidValue(9999)),
 		}, "extension_gidNumber")
 		require.NoError(t, err)
 		require.Len(t, groups, 2)
@@ -129,8 +124,8 @@ func TestProcessSecurityGroupsWithGID(t *testing.T) {
 		t.Parallel()
 
 		groups, err := msentraid.ProcessSecurityGroupsWithGID([]msgraphmodels.Groupable{
-			makeGroup("first", "Engineering", int64(2001)),
-			makeGroup("second", "engineering", int64(2002)),
+			makeGroup("first", "Engineering", gidValue(2001)),
+			makeGroup("second", "engineering", gidValue(2002)),
 		}, "extension_gidNumber")
 		require.NoError(t, err)
 		require.Len(t, groups, 1)
@@ -141,7 +136,7 @@ func TestProcessSecurityGroupsWithGID(t *testing.T) {
 		t.Parallel()
 
 		groups, err := msentraid.ProcessSecurityGroupsWithGID([]msgraphmodels.Groupable{
-			makeGroup("remote-id", "Engineering", "2001"),
+			makeGroup("remote-id", "Engineering", strValue("2001")),
 		}, "extension_gidNumber")
 		require.NoError(t, err)
 		require.Len(t, groups, 1)
@@ -163,8 +158,8 @@ func TestProcessSecurityGroupsWithGID(t *testing.T) {
 		t.Parallel()
 
 		groups, err := msentraid.ProcessSecurityGroupsWithGID([]msgraphmodels.Groupable{
-			makeGroup("first", "Engineering", "not-a-number"),
-			makeGroup("second", "engineering", int64(2002)),
+			makeGroup("first", "Engineering", strValue("not-a-number")),
+			makeGroup("second", "engineering", gidValue(2002)),
 		}, "extension_gidNumber")
 		require.NoError(t, err)
 		require.Len(t, groups, 1)

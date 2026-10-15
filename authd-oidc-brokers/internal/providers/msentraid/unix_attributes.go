@@ -3,141 +3,39 @@
 package msentraid
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
-	"math/big"
-	"regexp"
 )
 
-// decimalNumberPattern matches plain decimal numbers such as 12, -3.0, or 1e3.
-// big.Rat also accepts fractions and hexadecimal forms, so they are rejected first.
-var decimalNumberPattern = regexp.MustCompile(`^[+-]?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?$`)
-
+// parseUnixID converts a value read from a Graph directory extension property
+// into a Unix ID. An unset value is nil.
+//
+// The Graph SDK stores every JSON number from a property it does not know in a
+// model's additional data as a *float64, and a String or Boolean typed property
+// as a *string or *bool, so those are the shapes that reach this function in
+// production. The bare float64 form is here for fixtures that build additional
+// data themselves.
 func parseUnixID(value any) (*uint32, error) {
-	if value == nil {
-		return nil, nil
-	}
-
 	switch value := value.(type) {
-	case int:
-		return validateUnixID(int64(value))
-	case int8:
-		return validateUnixID(int64(value))
-	case int16:
-		return validateUnixID(int64(value))
-	case int32:
-		return validateUnixID(int64(value))
-	case int64:
-		return validateUnixID(value)
-	case *int:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixID(int64(*value))
-	case *int8:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixID(int64(*value))
-	case *int16:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixID(int64(*value))
-	case *int32:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixID(int64(*value))
-	case *int64:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixID(*value)
-	case uint:
-		return validateUnixIDUnsigned(uint64(value))
-	case uint8:
-		return validateUnixIDUnsigned(uint64(value))
-	case uint16:
-		return validateUnixIDUnsigned(uint64(value))
-	case uint32:
-		return validateUnixIDUnsigned(uint64(value))
-	case uint64:
-		return validateUnixIDUnsigned(value)
-	case *uint:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixIDUnsigned(uint64(*value))
-	case *uint8:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixIDUnsigned(uint64(*value))
-	case *uint16:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixIDUnsigned(uint64(*value))
-	case *uint32:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixIDUnsigned(uint64(*value))
-	case *uint64:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixIDUnsigned(*value)
-	case float32:
-		return validateUnixIDFloat(float64(value))
-	case float64:
-		return validateUnixIDFloat(value)
-	case *float32:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixIDFloat(float64(*value))
+	case nil:
+		return nil, nil
 	case *float64:
 		if value == nil {
 			return nil, nil
 		}
-		return validateUnixIDFloat(*value)
-	case json.Number:
-		return validateUnixIDNumber(value)
-	case *json.Number:
-		if value == nil {
-			return nil, nil
-		}
-		return validateUnixIDNumber(*value)
+		return validateUnixID(*value)
+	case float64:
+		return validateUnixID(value)
 	default:
 		return nil, fmt.Errorf("unsupported value type %T", value)
 	}
 }
 
-func validateUnixID(value int64) (*uint32, error) {
-	if value < 0 {
-		return nil, fmt.Errorf("value %d is negative", value)
-	}
-	return validateUnixIDUnsigned(uint64(value))
-}
-
-func validateUnixIDUnsigned(value uint64) (*uint32, error) {
-	if value == 0 {
-		return nil, fmt.Errorf("value must be positive")
-	}
-	if value == 65534 || value == 65535 || value == math.MaxUint32 {
-		return nil, fmt.Errorf("value %d is reserved", value)
-	}
-	if value > math.MaxInt32 {
-		return nil, fmt.Errorf("value %d is greater than the signed 32-bit maximum", value)
-	}
-	parsed := uint32(value)
-	return &parsed, nil
-}
-
-func validateUnixIDFloat(value float64) (*uint32, error) {
+// validateUnixID checks that a value can be a Unix ID. Directory extension
+// properties hold signed 32-bit integers, so anything that is not a positive
+// integer in that range is rejected.
+func validateUnixID(value float64) (*uint32, error) {
 	if math.IsNaN(value) || math.IsInf(value, 0) {
 		return nil, fmt.Errorf("value %v is not finite", value)
 	}
@@ -147,37 +45,16 @@ func validateUnixIDFloat(value float64) (*uint32, error) {
 	if value < 0 {
 		return nil, fmt.Errorf("value %v is negative", value)
 	}
-	// Check before converting: out-of-range float-to-integer results are implementation-dependent.
 	if value > math.MaxInt32 {
 		return nil, fmt.Errorf("value %v is greater than the signed 32-bit maximum", value)
 	}
-	return validateUnixIDUnsigned(uint64(value))
-}
 
-func validateUnixIDNumber(value json.Number) (*uint32, error) {
-	if integer, err := value.Int64(); err == nil {
-		return validateUnixID(integer)
+	parsed := uint32(value)
+	if parsed == 0 {
+		return nil, errors.New("value must be positive")
 	}
-	if !decimalNumberPattern.MatchString(string(value)) {
-		return nil, fmt.Errorf("invalid numeric value %q", value)
+	if parsed == 65534 || parsed == 65535 {
+		return nil, fmt.Errorf("value %d is reserved", parsed)
 	}
-	// Parse the exact decimal value. Converting to float64 first would round
-	// a value such as 1.0000000000000000001 to an integer. Graph values reach
-	// parseUnixID as float64, so this path only handles json.Number values.
-	exact, ok := new(big.Rat).SetString(string(value))
-	if !ok {
-		return nil, fmt.Errorf("value %s is outside the supported range", value)
-	}
-	if !exact.IsInt() {
-		return nil, fmt.Errorf("value %s is fractional", value)
-	}
-	integer := exact.Num()
-	if integer.Sign() < 0 {
-		return nil, fmt.Errorf("value %s is negative", value)
-	}
-	// Uint64 truncates larger values, so check IsUint64 first.
-	if !integer.IsUint64() || integer.Uint64() > math.MaxInt32 {
-		return nil, fmt.Errorf("value %s is greater than the signed 32-bit maximum", value)
-	}
-	return validateUnixIDUnsigned(integer.Uint64())
+	return &parsed, nil
 }
