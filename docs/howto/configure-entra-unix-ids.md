@@ -136,13 +136,12 @@ ID of the group whose GID you are assigning.
 
 Avoid giving an Entra group the same name as a user. authd already creates a
 private group for each user, named after that user. An Entra group with the same
-name collides with that private group. If the cache has no UID, the script
-refuses to apply the cache, because applying the group's GID would change the
-private group's GID. If the cache has a UID, the group's GID must match that UID.
-Avoid other name collisions too. For example, two Entra groups whose names are
-the same in lowercase conflict, and the script refuses them. Also avoid names
-that match local groups. `authctl` is the final check for local and authd
-database conflicts.
+name collides with that private group. If the cache has no UID, do not apply the
+group's GID, because it would change the private group's GID. If the cache has a
+UID, the group's GID must match that UID. Avoid other name collisions too. For
+example, two Entra groups whose names are the same in lowercase conflict. Also
+avoid names that match local groups. `authctl` is the final check for local and
+authd database conflicts.
 
 Use the full property names returned when the properties were created. For
 example, an attribute created by Entra Connect or Cloud Sync may use
@@ -201,8 +200,7 @@ missing after the online lookup denies the login.
 If the broker cannot rewrite `token.json`, for example on a full or read-only
 disk, the login is denied when `force_access_check_with_provider` is `true` and
 `unix_uid_required` or `unix_gid_required` is `true`. In other cases the login
-continues, and `apply-entra-unix-ids` refuses the cache until a later login
-rewrites it.
+continues, and the file keeps the old IDs until a later login rewrites it.
 
 Restart the broker after changing the configuration. See
 [Configure authd](ref::config) for the service-specific restart command.
@@ -338,64 +336,30 @@ file accessible only to root or the broker service.
 
 ## Apply the cached values
 
-After you change the attribute configuration, log in as the user before you
-apply the values. The broker drops IDs from the old attribute only during a
-login. Until then the script refuses the cache, because its attribute names
-differ from the configured names.
+After you change the attribute configuration, log in as the user first, so that
+the broker refreshes the cache under the current names. The `UnixAttributeNames`
+entry in `token.json` records the names the IDs were read from, and it has to
+match the `[msentraid]` section of the broker configuration.
 
-Review a cache first. The `apply-entra-unix-ids` command is installed with the
-`authd` package and needs `jq`, which the package recommends. See
-`man apply-entra-unix-ids` for all options, environment variables, and exit
-codes. Pass the attribute names from the `[msentraid]` section of the broker
-configuration. An empty name means that the attribute is not configured. The
-command defaults to a dry run:
+Read the cached values from `token.json`:
 
 ```shell
-sudo apply-entra-unix-ids --uid-attribute extension_abc123_uidNumber \
-  --gid-attribute extension_abc123_gidNumber /path/to/token.json
+sudo jq '{uid: .UserInfo.uid, groups: [.UserInfo.groups[] | select(.gid != null)]}' /path/to/token.json
 ```
 
-If the configuration uses short names, also pass the `client_id` from the
-`[oidc]` section:
-
-```shell
-sudo apply-entra-unix-ids --uid-attribute uidNumber --gid-attribute gidNumber \
-  --client-id <APPLICATION_CLIENT_ID> /path/to/token.json
-```
-
-Use `--apply` only after reviewing the planned changes:
-
-```shell
-sudo apply-entra-unix-ids --apply --uid-attribute extension_abc123_uidNumber \
-  --gid-attribute extension_abc123_gidNumber /path/to/token.json
-```
-
-The script refuses a cache that holds Unix IDs when its attribute names differ
-from the names you pass, or when the names are missing. Log in again with the
-current configuration to refresh the cache, then review it again.
-
-The script reads the cache once and builds the entire plan from that captured
-JSON document. It rejects malformed input or multiple JSON documents before
-running any command. It validates numeric values, skips local groups and groups without a
-cached GID, uses `ugid` for conflict reporting, and passes the normalized group
-name to `authctl`. It aborts before any command when the input contains
-conflicting UID/GID assignments. Application is not transactional: a later
-`authctl` command may fail after earlier commands have succeeded.
-
-When the cache contains a UID, the script first sets the user's UID, then sets
-the GID of the user's private group (named after the user) to the same value.
-It then applies remote group GIDs. Without a cached UID, it leaves the private
-group unchanged. If a remote group has the same name as the user and the cache
-has no UID, the script aborts before running any command, because applying that
-group would change the private group's GID.
-
-The underlying commands remain available for individual changes:
+Apply them with `authctl`, one user at a time:
 
 ```shell
 sudo authctl user set-uid <user> <uid>
 sudo authctl group set-gid <user> <uid>
 sudo authctl group set-gid <normalized-group-name> <gid>
 ```
+
+Values that are missing or invalid, local groups, and groups without a cached GID
+are skipped, because there is nothing to apply or `authctl` rejects them. When
+the cache holds a UID, set the user's UID and the GID of their private group
+(named after the user) to that value, then apply the remote group GIDs. A failed
+`authctl` command leaves the earlier commands applied.
 
 Before changing an existing UID, stop the user's active sessions. Check for
 duplicate IDs before applying a batch. `authctl` remains the final check for

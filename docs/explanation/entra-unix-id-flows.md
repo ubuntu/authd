@@ -342,8 +342,7 @@ authctl group set-gid <user> <uid>
 authctl group set-gid <normalized-group-name> <gid>
 ```
 
-These commands skip the attribute-name check that `apply-entra-unix-ids` runs.
-Before you apply values by hand, check the names that the cache was read with:
+These commands do not check the attribute names, so check them first:
 
 ```shell
 sudo jq '.UnixAttributeNames' /path/to/token.json
@@ -354,17 +353,6 @@ The output must match the configured attribute names. A short name resolves to
 names differ, do not apply values from that cache. Log in again with the current
 configuration, then check again. A failed cache rewrite can leave IDs from the
 old attribute in `token.json`.
-
-The `apply-entra-unix-ids` command reads one
-explicit `token.json` file. It defaults to a dry run and requires `--apply` for
-mutations. It also requires the configured attribute names and refuses a cache
-whose names differ. When a cached UID is present, it sets the user's UID and
-then the GID of the user's private group to that same value before applying
-remote group
-GIDs. It skips local groups and groups without a cached GID, uses `ugid`
-for conflict reporting, and aborts before mutation if the input contains
-conflicting assignments. The operation is not transactional; `authctl` remains
-the final check for local and authd database conflicts.
 
 ## What this branch does not implement
 
