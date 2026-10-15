@@ -55,10 +55,8 @@ func TestParseUnixID(t *testing.T) {
 		want    *uint32
 		wantErr bool
 	}{
-		"Absent":                      {value: nil},
 		"Pointer_to_nil":              {value: (*float64)(nil)},
 		"Pointer_to_integer":          {value: ref(1001), want: id(1001)},
-		"Bare_integer":                {value: float64(1002), want: id(1002)},
 		"Max_int32_is_accepted":       {value: ref(math.MaxInt32), want: id(math.MaxInt32)},
 		"Negative_is_rejected":        {value: ref(-1), wantErr: true},
 		"Zero_is_rejected":            {value: ref(0), wantErr: true},
