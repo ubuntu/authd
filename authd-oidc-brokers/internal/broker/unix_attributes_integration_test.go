@@ -710,6 +710,10 @@ func TestUnixAttributeFallbackPreservesCredentialsAndSnapshot(t *testing.T) {
 				{name: "retry with device auth", requiredErr: &providerErrors.RetryWithDeviceAuthError{Err: errors.New("retry with device auth")}, deviceAuthOnly: true, wantRetry: true},
 				{name: "device disabled after password refresh", requiredErr: providerErrors.ErrDeviceDisabled, passwordRefreshOnly: true, wantDenied: true},
 				{name: "retry with device auth after password refresh", requiredErr: &providerErrors.RetryWithDeviceAuthError{Err: errors.New("retry with device auth")}, passwordRefreshOnly: true, wantRetry: true},
+				// The Entra flow has to give the same outcome for the provider
+				// errors the other two flows classify.
+				{name: "device disabled without forced check", requiredErr: providerErrors.ErrDeviceDisabled, entraOnly: true, wantDenied: true},
+				{name: "invalid redirect URI without forced check", requiredErr: &providerErrors.ForDisplayError{Message: "invalid redirect URI", Err: providerErrors.ErrInvalidRedirectURI}, entraOnly: true, wantDenied: true},
 			} {
 				if tc.deviceAuthOnly && (flow != "device" || registerDevice) {
 					continue
@@ -822,7 +826,7 @@ func TestUnixAttributeFallbackPreservesCredentialsAndSnapshot(t *testing.T) {
 						require.Equal(t, broker.AuthGranted, access, data)
 					}
 					checkCache()
-					if tc.forceCheck || tc.deviceAuthOnly || tc.passwordRefreshOnly {
+					if tc.forceCheck || tc.deviceAuthOnly || tc.passwordRefreshOnly || tc.wantDenied {
 						return
 					}
 					offlineID, offlineKey := newSessionForTests(t, b, username, sessionmode.Login)

@@ -1551,31 +1551,10 @@ func (b *Broker) deviceAuth(ctx context.Context, session *session) (string, isAu
 	// We can only fetch the groups after registering the device, because the token acquired for device registration
 	// cannot be used with the Microsoft Graph API and a new token must be acquired for the Graph API.
 	err = b.refreshGroupsOrEnrich(ctx, session, authInfo, nil, oldAuthInfo)
+	if providerAccess, data := b.providerErrorResponse(session, authInfo, oldAuthInfo, err); providerAccess != "" {
+		return providerAccess, data
+	}
 	if err != nil {
-		if errors.Is(err, providerErrors.ErrDeviceDisabled) {
-			log.Errorf(context.Background(), "Login denied: device is disabled in %s for user %q", b.provider.DisplayName(), session.username)
-			authInfo.DeviceIsDisabled = true
-			if err = b.cacheCredentialsWithPreviousUserInfo(session, authInfo, oldAuthInfo); err != nil {
-				log.Errorf(context.Background(), "Failed to store token: %s", err)
-				return AuthDenied, unexpectedErrMsg("failed to store token")
-			}
-			return AuthDenied, errorMessage{Message: fmt.Sprintf("This device is disabled in %s, please contact your administrator.", b.provider.DisplayName())}
-		}
-		if errors.Is(err, providerErrors.ErrInvalidRedirectURI) {
-			log.Errorf(context.Background(), "Login denied: %s", err)
-			return AuthDenied, errorMessageForDisplay(err, "Invalid redirect URI")
-		}
-		var retryWithDeviceAuthError *providerErrors.RetryWithDeviceAuthError
-		if errors.As(err, &retryWithDeviceAuthError) {
-			log.Errorf(context.Background(), "Token acquisition failed: %s. Try again using the device code flow.", err)
-			authInfo.DeviceRegistrationData = nil
-			if err = b.cacheCredentialsWithPreviousUserInfo(session, authInfo, oldAuthInfo); err != nil {
-				log.Errorf(context.Background(), "Failed to store token: %s", err)
-				return AuthDenied, unexpectedErrMsg("failed to store token")
-			}
-			session.nextAuthModes = reauthModes
-			return AuthNext, errorMessage{Message: "Authentication failed due to a token issue. Please try again."}
-		}
 		if b.unixAttributeEnrichmentEnabled() && oldAuthInfo != nil && !b.cfg.forceAccessCheckWithProvider {
 			log.Warningf(context.Background(), "Could not enrich user info: %v. Using the previous complete snapshot.", err)
 			b.preserveCachedUserInfo(authInfo, oldAuthInfo)
@@ -1722,41 +1701,8 @@ func (b *Broker) passwordAuth(ctx context.Context, session *session, secret stri
 
 	// Try to refresh the groups and configured Unix attributes.
 	err = b.refreshGroupsOrEnrich(ctx, session, authInfo, transientToken, oldAuthInfo)
-	if errors.Is(err, providerErrors.ErrDeviceDisabled) {
-		// The device is disabled, deny login
-		log.Errorf(context.Background(), "Login denied: device is disabled in %s for user %q", b.provider.DisplayName(), session.username)
-
-		// Store the information that the device is disabled, so that we can deny login on subsequent offline attempts.
-		authInfo.DeviceIsDisabled = true
-		if err = token.CacheAuthInfo(session.tokenPath, authInfo); err != nil {
-			log.Errorf(context.Background(), "Failed to store token: %s", err)
-			return AuthDenied, unexpectedErrMsg("failed to store token")
-		}
-
-		return AuthDenied, errorMessage{Message: fmt.Sprintf("This device is disabled in %s, please contact your administrator.", b.provider.DisplayName())}
-	}
-	if errors.Is(err, providerErrors.ErrInvalidRedirectURI) {
-		// Deny login if the redirect URI is invalid, so that users and administrators are aware of the issue.
-		log.Errorf(context.Background(), "Login denied: %s", err)
-		return AuthDenied, errorMessageForDisplay(err, "Invalid redirect URI")
-	}
-	var retryWithDeviceAuthError *providerErrors.RetryWithDeviceAuthError
-	if errors.As(err, &retryWithDeviceAuthError) {
-		log.Errorf(context.Background(), "Token acquisition failed: %s. Try again using the device code flow.", err)
-		// The token acquisition failed unexpectedly.
-		// One possible reason is that the device was deleted by an administrator in Entra ID.
-		// In this case, the user can perform device code flow again to get a new token
-		// and register the device again, allowing the user to log in.
-		// We delete the device registration data to cause device code flow to re-register the device.
-		authInfo.DeviceRegistrationData = nil
-		if err = token.CacheAuthInfo(session.tokenPath, authInfo); err != nil {
-			log.Errorf(context.Background(), "Failed to store token: %s", err)
-			return AuthDenied, unexpectedErrMsg("failed to store token")
-		}
-
-		session.nextAuthModes = reauthModes
-		msg := "Authentication failed due to a token issue. Please try again."
-		return AuthNext, errorMessage{Message: msg}
+	if providerAccess, data := b.providerErrorResponse(session, authInfo, oldAuthInfo, err); providerAccess != "" {
+		return providerAccess, data
 	}
 	if err != nil {
 		if b.unixAttributeEnrichmentEnabled() {
@@ -2589,6 +2535,9 @@ func (b *Broker) finishEntraAuth(ctx context.Context, session *session, mfaToken
 	// live provider verification, so a non-required enrichment failure can use
 	// the previous complete snapshot on a returning login.
 	err = b.refreshGroupsOrEnrich(ctx, session, authInfo, nil, oldAuthInfo)
+	if providerAccess, data := b.providerErrorResponse(session, authInfo, oldAuthInfo, err); providerAccess != "" {
+		return providerAccess, data
+	}
 	if err != nil {
 		if b.unixAttributeEnrichmentEnabled() {
 			if errors.Is(err, info.ErrUnixAttributeRequired) && b.cfg.forceAccessCheckWithProvider {
@@ -3496,6 +3445,45 @@ func (b *Broker) cacheCredentialsWithPreviousUserInfo(session *session, authInfo
 		cached.UnixAttributeNames = oldAuthInfo.UnixAttributeNames
 	}
 	return token.CacheAuthInfo(session.tokenPath, &cached)
+}
+
+// providerErrorResponse maps the provider errors every flow shares to a login
+// response: deny for a disabled device or an invalid redirect URI, restart for
+// a token that only registers a device, and empty for anything else.
+func (b *Broker) providerErrorResponse(session *session, authInfo, oldAuthInfo *token.AuthCachedInfo, err error) (string, isAuthenticatedDataResponse) {
+	if errors.Is(err, providerErrors.ErrDeviceDisabled) {
+		log.Errorf(context.Background(), "Login denied: device is disabled in %s for user %q", b.provider.DisplayName(), session.username)
+
+		// Store the information that the device is disabled, so that we can deny login on subsequent offline attempts.
+		authInfo.DeviceIsDisabled = true
+		if err = b.cacheCredentialsWithPreviousUserInfo(session, authInfo, oldAuthInfo); err != nil {
+			log.Errorf(context.Background(), "Failed to store token: %s", err)
+			return AuthDenied, unexpectedErrMsg("failed to store token")
+		}
+
+		return AuthDenied, errorMessage{Message: fmt.Sprintf("This device is disabled in %s, please contact your administrator.", b.provider.DisplayName())}
+	}
+	if errors.Is(err, providerErrors.ErrInvalidRedirectURI) {
+		// Deny login if the redirect URI is invalid, so that users and administrators are aware of the issue.
+		log.Errorf(context.Background(), "Login denied: %s", err)
+		return AuthDenied, errorMessageForDisplay(err, "Invalid redirect URI")
+	}
+	var retryWithDeviceAuthError *providerErrors.RetryWithDeviceAuthError
+	if errors.As(err, &retryWithDeviceAuthError) {
+		log.Errorf(context.Background(), "Token acquisition failed: %s. Try again using the device code flow.", err)
+
+		// The device was probably deleted by an administrator in Entra ID, so the
+		// registration data goes and the next attempt registers the device again.
+		authInfo.DeviceRegistrationData = nil
+		if err = b.cacheCredentialsWithPreviousUserInfo(session, authInfo, oldAuthInfo); err != nil {
+			log.Errorf(context.Background(), "Failed to store token: %s", err)
+			return AuthDenied, unexpectedErrMsg("failed to store token")
+		}
+
+		session.nextAuthModes = reauthModes
+		return AuthNext, errorMessage{Message: "Authentication failed due to a token issue. Please try again."}
+	}
+	return "", nil
 }
 
 func (b *Broker) refreshGroupsOrEnrich(ctx context.Context, session *session, authInfo *token.AuthCachedInfo, transientToken *oauth2.Token, oldAuthInfo *token.AuthCachedInfo) error {
