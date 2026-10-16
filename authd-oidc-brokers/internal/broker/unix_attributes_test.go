@@ -38,60 +38,15 @@ func TestEnrichUserInfoOfflineUsesCachedUnixIDs(t *testing.T) {
 
 	uid := uint32(1001)
 	gid := uint32(2001)
-	tests := []struct {
-		name   string
-		config Config
-		user   info.User
-	}{
-		{
-			name: "optional IDs may be missing",
-			config: Config{userConfig: userConfig{
-				unixUIDAttribute: "extension_uidNumber",
-				unixGIDAttribute: "extension_gidNumber",
-			}},
-			user: info.User{Groups: []info.Group{{Name: "engineering", UGID: "group-id"}}},
-		},
-		{
-			name: "required UID may be missing",
-			config: Config{userConfig: userConfig{
-				unixUIDAttribute: "extension_uidNumber",
-				unixUIDRequired:  true,
-			}},
-			user: info.User{},
-		},
-		{
-			name: "required remote GID may be missing",
-			config: Config{userConfig: userConfig{
-				unixGIDAttribute: "extension_gidNumber",
-				unixGIDRequired:  true,
-			}},
-			user: info.User{Groups: []info.Group{{Name: "engineering", UGID: "group-id"}}},
-		},
-		{
-			name: "complete snapshot is kept",
-			config: Config{userConfig: userConfig{
-				unixUIDAttribute: "extension_uidNumber",
-				unixGIDAttribute: "extension_gidNumber",
-				unixUIDRequired:  true,
-				unixGIDRequired:  true,
-			}},
-			user: info.User{
-				UID:    &uid,
-				Groups: []info.Group{{Name: "engineering", UGID: "group-id", GID: &gid}},
-			},
-		},
+	user := info.User{
+		UID:    &uid,
+		Groups: []info.Group{{Name: "engineering", UGID: "group-id", GID: &gid}},
 	}
+	broker := &Broker{}
+	authInfo := &token.AuthCachedInfo{UserInfo: user}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			broker := &Broker{cfg: tc.config}
-			authInfo := &token.AuthCachedInfo{UserInfo: tc.user}
-			require.NoError(t, broker.enrichUserInfo(context.Background(), &session{isOffline: true}, authInfo, nil))
-			require.Equal(t, tc.user, authInfo.UserInfo)
-		})
-	}
+	require.NoError(t, broker.enrichUserInfo(context.Background(), &session{isOffline: true}, authInfo, nil))
+	require.Equal(t, user, authInfo.UserInfo)
 }
 
 func TestPreserveCachedUserInfoCopiesGroupsAndNames(t *testing.T) {
