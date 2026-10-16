@@ -30,6 +30,7 @@ sudo apt install devscripts
 The project consists of the following binaries:
 
 * `authd`: The main authentication service.
+* `authctl`: The command-line tool for managing authd users and groups.
 * `pam_authd.so`: A PAM native module (used by GDM).
 * `pam_authd_exec.so`, `authd-pam`: A PAM module and its helper executable (used by other PAM applications).
 * `libnss_authd.so`: An NSS module.
@@ -68,6 +69,14 @@ go build ./cmd/authd
 ```
 
 The built binary will be found in the current directory. The daemon can be run directly from this binary without installing it on the system.
+
+### Building authctl only
+
+To build `authctl` from the top of the source tree:
+
+```shell
+go build ./cmd/authctl
+```
 
 ### Building the PAM module only
 
@@ -114,6 +123,15 @@ The authd brokers are packaged as separate snaps that are built and released
 independently from authd. The source code for the brokers is located in
 `./authd-oidc-brokers` and the snap packaging files are located in `./snap`.
 
+````{admonition} Building the broker requires snapcraft
+:class: important
+If you do not have snapcraft installed, run:
+
+```shell
+sudo snap install snapcraft --classic
+```
+````
+
 To build the broker snap for a specific broker variant, follow these steps from the top of the source tree:
 
 1. Ensure that the submodules are checked out:
@@ -145,11 +163,13 @@ snap install --dangerous ./path/to/broker.snap
 
 ## About the test suite
 
-The project includes a comprehensive test suite made of unit and integration tests. All the tests must pass before the review is considered. If you have troubles with the test suite, feel free to mention it in your PR description.
+The project includes a comprehensive test suite made of unit, integration, and end-to-end tests. All the tests must pass before the review is considered. If you have trouble with the test suite, feel free to mention it in your PR description.
 
-You can run all tests with: `go test ./...` (add the `-race` flag for race detection).
+From the repository root, run authd's Go unit tests and the PAM and NSS integration tests with: `go test ./...` (add the `-race` flag for race detection).
 
 Every package has a suite of at least package-level tests. They may integrate more granular unit tests for complex functionalities. Integration tests are located in `./pam/integration-tests` for the PAM module and `./nss/integration-tests` for the NSS module.
+
+The end-to-end tests for authd and its brokers run in a provisioned Ubuntu VM. See the [end-to-end testing guide](https://github.com/canonical/authd/blob/main/e2e-tests/TESTING.md) for details.
 
 The test suite must pass before merging the PR to our main branch. Any new feature, change or fix must be covered by corresponding tests.
 
