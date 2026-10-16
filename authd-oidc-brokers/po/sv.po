@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: authd\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-01 15:21\n"
-"PO-Revision-Date: 2026-04-01 15:21\n"
+"PO-Revision-Date: 2026-10-15 10:04+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -14,11 +14,11 @@ msgstr ""
 
 #: ./authd-oidc-brokers/cmd/authd-oidc/daemon/version.go
 msgid "%s\\t%s"
-msgstr ""
+msgstr "%s\\t%s"
 
 #: ./authd-oidc-brokers/cmd/authd-oidc/daemon/daemon.go
 msgid "issue INFO (-v), DEBUG (-vv) or DEBUG with caller (-vvv) output"
-msgstr "visa INFO (-v), DEBUG (-vv) eller DEBUG med anropare (-vvv) utdata"
+msgstr "skriv ut INFO (-v), DEBUG (-vv) eller DEBUG med anropare (-vvv)"
 
 #: ./cmd/authd/daemon/config.go
 msgid "use a specific configuration file"
@@ -26,34 +26,34 @@ msgstr "använd en specifik konfigurationsfil"
 
 #: ./internal/brokers/manager.go
 msgid "can't create brokers detection object"
-msgstr "kan inte skapa mäklardetekteringsobjekt"
+msgstr "kan inte skapa identifieringsobjekt för förmedlare"
 
 #: ./internal/daemon/daemon.go
 msgid "unexpected number of systemd socket activation (%d != 1)"
-msgstr "oväntat antal systemd socket-aktiveringar (%d != 1)"
+msgstr "oväntat antal socketaktiveringar från systemd (%d != 1)"
 
 #: ./internal/daemon/daemon.go
 msgid "couldn't send ready notification to systemd: %v"
-msgstr "kunde inte skicka redo-notifikation till systemd: %v"
+msgstr "kunde inte skicka redoavisering till systemd: %v"
 
 #: ./internal/daemon/daemon.go
 msgid "can't create daemon"
-msgstr "kan inte skapa daemon"
+msgstr "kan inte skapa bakgrundsprocessen"
 
 #: ./internal/daemon/daemon.go
 msgid "error while serving"
-msgstr "fel vid servering"
+msgstr "fel vid hantering"
 
 msgid "Returns version of daemon and exits"
-msgstr "Returnerar version av demonen och avslutar"
+msgstr "Returnerar version av bakgrundsprocessen och avslutar"
 
 msgid "Authentication daemon"
-msgstr "Autentiseringsdemonen"
+msgstr "Autentiseringsbakgrundsprocess"
 
 msgid "Authentication daemon bridging the system with external brokers."
 msgstr ""
-"Autentiseringsdemon som kopplar systemet till externa "
+"Autentiseringsbakgrundsprocess som kopplar systemet till externa "
 "autentiseringsförmedlare."
 
 msgid "check configuration and exit"
-msgstr "kontrollera konfiguration och avsluta"
+msgstr "kontrollera konfigurationen och avsluta"
