@@ -81,8 +81,7 @@ Continue Log In With Remote User: Authenticate In External Browser
 Extract Device Code
     ${text} =    Read Text
     ${user_code} =    StringUtils.First Match    ${DEVICE_URL_REGEX}    ${text}
-    # OCR can add spaces or lowercase letters to the code.
-    ${user_code} =    Remove String    ${user_code}    ${SPACE}
+    # OCR can read some letters as lowercase.
     ${user_code} =    String.Convert To Upper Case    ${user_code}
     RETURN    ${user_code}
 
