@@ -23,6 +23,8 @@ updates:
   ## Python lint tools
   - package-ecosystem: "pip"
     directory: "/"
+    exclude-paths:
+      - "docs/**"
     schedule:
       interval: "weekly"
       day: "thursday"
