@@ -498,13 +498,12 @@ Restore Guest Clock
 
 
 Try machinectl login Prompt
-    [Arguments]    ${prompt_timeout}=120
     VAR    ${tries}    3
     WHILE    ${tries} > 0
         Hid.Type String    machinectl login
         Hid.Keys Combo    Return
         ${match} =     Run Keyword And Return Status
-        ...    Match Text    ubuntu login:    ${prompt_timeout}
+        ...    Match Text    ubuntu login:    120
         IF   '${match}' == 'True'
             BREAK
         END
