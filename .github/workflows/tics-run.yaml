@@ -21,6 +21,7 @@ env:
 jobs:
   tics:
     name: TIOBE TICS Framework
+    if: github.repository == 'canonical/authd'
     runs-on: [self-hosted, amd64, tiobe, noble]
     steps:
       - uses: actions/checkout@v7
