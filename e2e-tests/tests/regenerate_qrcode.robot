@@ -15,9 +15,22 @@ ${username}    %{E2E_USER}
 ${local_password}    qwer1234
 
 
+*** Keywords ***
+
+Get New Device Code
+    [Arguments]    ${previous_code}
+    ${new_code} =    Extract Device Code
+    Should Not Be Equal    ${new_code}    ${previous_code}
+    RETURN    ${new_code}
+
 *** Test Cases ***
 Test login with CLI and QR code regeneration
-    [Documentation]    This test verifies that a remote user can log in using device code flow via CLI with QR code regeneration, and subsequently log in using a local password.
+    [Documentation]    The test starts a device-code login, requests three
+    ...    replacement codes, and signs in with the last one.
+    ...
+    ...    Each request should change the displayed code. The test checks each
+    ...    replacement, then sets a local password, checks setup, and logs in
+    ...    again through ``su``.
 
     # Log in with local user
     Log In
@@ -26,11 +39,12 @@ Test login with CLI and QR code regeneration
     Open Terminal
     Start Log In With Remote User Through CLI: QR Code   ${username}
     Select Provider
-    # Let's try regenerating the QR code a couple of times
-    Regenerate QR Code
-    Regenerate QR Code
-    Regenerate QR Code
-    # Now we should be able to log in with the remote user using the latest QR code
+    ${user_code} =    Wait Until Keyword Succeeds    30s    1s    Extract Device Code
+    FOR    ${attempt}    IN RANGE    3
+        Regenerate QR Code
+        ${user_code} =    Wait Until Keyword Succeeds    30s    1s
+        ...    Get New Device Code    ${user_code}
+    END
     Continue Log In With Remote User: Authenticate In External Browser
     Continue Log In With Remote User Through CLI: Define Local Password   ${username}    ${local_password}
     # Check remote user is properly added to the system
