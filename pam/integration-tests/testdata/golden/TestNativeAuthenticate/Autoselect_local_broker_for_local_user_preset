@@ -1,0 +1,5 @@
+auth=incomplete
+PAM Authenticate()
+  User: "root"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch

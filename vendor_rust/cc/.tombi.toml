@@ -1,0 +1,8 @@
+[format.rules]
+indent-width = 4
+key-quote-style = "single"
+
+[[schemas]]
+toml-version = "v1.0.0"
+path = "tombi://www.schemastore.org/cargo.json"
+include = ["Cargo.toml"]

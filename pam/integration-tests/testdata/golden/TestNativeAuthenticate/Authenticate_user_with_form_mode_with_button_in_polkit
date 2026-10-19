@@ -1,0 +1,33 @@
+Gimme your password
+
+Enter 'r' to cancel the request and go back to select the authentication flow
+
+>
+  1. Password authentication
+  2. Send URL to user-integration-native-authenticate-user-with-form-mode-with-button-in-polkit@example.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Authentication code
+Choose your authentication flow:
+> 7
+  1. Proceed with Authentication code
+  2. Resend SMS (1 sent)
+Or enter 'r' to go back to select the authentication flow
+Choose action:
+> 2
+  1. Proceed with Authentication code
+  2. Resend SMS (2 sent)
+Or enter 'r' to go back to select the authentication flow
+Choose action:
+> 1
+Enter your one time credential
+
+Enter 'r' to cancel the request and go back to select the authentication flow
+
+> temporary pass00
+  PAM_AUTHTOK: "temporary pass00"
+PAM Authenticate()
+  User: "user-integration-native-authenticate-user-with-form-mode-with-button-in-polkit@example.com"
+  Result: success

@@ -1,0 +1,8 @@
+Username: user name
+────────────────────────────────────────────────────────────────────────────────
+PAM Error Message: unix:///authd/test_socket.sock stopped serving
+PAM Authenticate()
+  User: "<unset>"
+  Result: error: PAM exit code: 4
+    System error
+────────────────────────────────────────────────────────────────────────────────
