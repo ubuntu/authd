@@ -12,13 +12,8 @@ At the top of each page in the documentation, there is a **Give feedback**
 button. If you find an issue in the documentation, clicking this button will
 open an Issue submission on GitHub for the specific page.
 
-For minor changes, such as fixing a single typo, you can click the **pencil**
-icon at the top right of any page. This will open up the source file in GitHub so
-that you can make edits directly.
-
-For more significant changes to the content or organization of the
-documentation, you should create your own fork and follow the steps
-outlined in the section on [pull requests](/contributing/index.md#pull-requests).
+For changes to the documentation, create your own fork and follow the steps
+outlined in [pull requests](/contributing/index.md#pull-requests).
 
 ## Building the documentation
 
