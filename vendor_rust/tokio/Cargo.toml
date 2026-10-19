@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.71"
 name = "tokio"
-version = "1.53.1"
+version = "1.53.3"
 authors = ["Tokio Contributors <team@tokio.rs>"]
 build = false
 autolib = false
@@ -264,10 +264,6 @@ path = "tests/fs_write.rs"
 [[test]]
 name = "io_async_fd"
 path = "tests/io_async_fd.rs"
-
-[[test]]
-name = "io_async_fd_memory_leak"
-path = "tests/io_async_fd_memory_leak.rs"
 
 [[test]]
 name = "io_async_read"
@@ -708,6 +704,10 @@ path = "tests/task_panic.rs"
 [[test]]
 name = "task_trace_self"
 path = "tests/task_trace_self.rs"
+
+[[test]]
+name = "task_trace_wake"
+path = "tests/task_trace_wake.rs"
 
 [[test]]
 name = "task_yield_now"

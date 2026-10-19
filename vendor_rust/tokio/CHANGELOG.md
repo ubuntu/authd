@@ -1,3 +1,55 @@
+# 1.53.3 (October 13th, 2026)
+
+### Added
+
+- io: add `AsyncFd::register` and `AsyncFd::register_with_interest` ([#8587])
+
+### Changed
+
+- io: deprecate `AsyncFd::{new, with_interest, try_new, try_with_interest}` ([#8587])
+
+### Fixed
+
+- io: wake and drop `DuplexStream` wakers outside the lock ([#8618])
+- macros: avoid `unreachable_code` in `join!` and `try_join!` for `Infallible` ([#8518])
+- runtime: fix paused time auto-advancing when I/O wakes a task on `current_thread` ([#8595])
+- sync: wake waiters outside the lock when closing a semaphore ([#8529])
+- test: fix several flaky tests ([#8196], [#8427], [#8609])
+
+### Fixed (unstable)
+
+- rt: keep `io_uring` op alive when submission fails after push ([#8185])
+
+[#8185]: https://github.com/tokio-rs/tokio/pull/8185
+
+# 1.53.2 (October 3rd, 2026)
+
+### Fixed
+
+- fs: handle integer overflow in buffered relative seek ([#8574])
+- io: revert "always cleanup `AsyncFd` registration list on deregister" ([#8540])
+- process: unregister Windows wait before closing child handle ([#8564])
+- rt: drop blocking pool mutex before shutting down rejected task ([#8562])
+- sync: fix mpsc index wraparound in block reclamation ([#8546])
+- sync: forget mpsc `Permit` before sending value ([#8560])
+- sync: validate `MAX_PERMITS` in `Semaphore::acquire` ([#8548])
+- sync: wake broadcast `Sender::closed` outside mutex ([#8558])
+- task: drop replaced waker outside lock in `JoinSet` ([#8554])
+- time: drop timer lock before dropping waker in `clear_entry` ([#8552])
+- time: expire timers directly on shutdown without rotating wheel ([#8570])
+
+### Fixed (unstable)
+
+- fs: clamp `io_uring` read length to `u32::MAX` ([#8572])
+- rt: ignore `current_thread` task dumps from other runtimes ([#8544])
+- rt: preserve `io_uring` context if a completion waker panics ([#8566])
+- sync: fix semaphore use-after-free and permit leak on tracing panic ([#8542])
+- taskdump: restore deferred leaf wakes during capture ([#8445])
+- time: drop stored waker when cancelling alt timer entry ([#8550])
+
+[#8445]: https://github.com/tokio-rs/tokio/pull/8445
+[#8572]: https://github.com/tokio-rs/tokio/pull/8572
+
 # 1.53.1 (July 20th, 2026)
 
 ### Fixed
@@ -179,6 +231,72 @@ This release reverts the LIFO slot stealing change introduced in 1.51.0
 [#8030]: https://github.com/tokio-rs/tokio/pull/8030
 [#8035]: https://github.com/tokio-rs/tokio/pull/8035
 [#8040]: https://github.com/tokio-rs/tokio/pull/8040
+
+# 1.51.6 (October 13th, 2026)
+
+### Added
+
+- io: add `AsyncFd::register` and `AsyncFd::register_with_interest` ([#8587])
+
+### Changed
+
+- io: deprecate `AsyncFd::{new, with_interest, try_new, try_with_interest}` ([#8587])
+
+### Fixed
+
+- io: wake and drop `DuplexStream` wakers outside the lock ([#8618])
+- macros: avoid `unreachable_code` in `join!` and `try_join!` for `Infallible` ([#8518])
+- runtime: fix paused time auto-advancing when I/O wakes a task on `current_thread` ([#8595])
+- sync: wake waiters outside the lock when closing a semaphore ([#8529])
+- test: fix several flaky tests ([#8196], [#8427], [#8609])
+
+[#8196]: https://github.com/tokio-rs/tokio/pull/8196
+[#8427]: https://github.com/tokio-rs/tokio/pull/8427
+[#8518]: https://github.com/tokio-rs/tokio/pull/8518
+[#8529]: https://github.com/tokio-rs/tokio/pull/8529
+[#8587]: https://github.com/tokio-rs/tokio/pull/8587
+[#8595]: https://github.com/tokio-rs/tokio/pull/8595
+[#8609]: https://github.com/tokio-rs/tokio/pull/8609
+[#8618]: https://github.com/tokio-rs/tokio/pull/8618
+
+# 1.51.5 (October 3rd, 2026)
+
+### Fixed
+
+- fs: handle integer overflow in buffered relative seek ([#8574])
+- io: revert "always cleanup `AsyncFd` registration list on deregister" ([#8540])
+- process: unregister Windows wait before closing child handle ([#8564])
+- rt: drop blocking pool mutex before shutting down rejected task ([#8562])
+- sync: fix mpsc index wraparound in block reclamation ([#8546])
+- sync: forget mpsc `Permit` before sending value ([#8560])
+- sync: validate `MAX_PERMITS` in `Semaphore::acquire` ([#8548])
+- sync: wake broadcast `Sender::closed` outside mutex ([#8558])
+- task: drop replaced waker outside lock in `JoinSet` ([#8554])
+- time: drop timer lock before dropping waker in `clear_entry` ([#8552])
+- time: expire timers directly on shutdown without rotating wheel ([#8570])
+
+### Fixed (unstable)
+
+- rt: ignore `current_thread` task dumps from other runtimes ([#8544])
+- rt: preserve `io_uring` context if a completion waker panics ([#8566])
+- sync: fix semaphore use-after-free and permit leak on tracing panic ([#8542])
+- time: drop stored waker when cancelling alt timer entry ([#8550])
+
+[#8540]: https://github.com/tokio-rs/tokio/pull/8540
+[#8542]: https://github.com/tokio-rs/tokio/pull/8542
+[#8544]: https://github.com/tokio-rs/tokio/pull/8544
+[#8546]: https://github.com/tokio-rs/tokio/pull/8546
+[#8548]: https://github.com/tokio-rs/tokio/pull/8548
+[#8550]: https://github.com/tokio-rs/tokio/pull/8550
+[#8552]: https://github.com/tokio-rs/tokio/pull/8552
+[#8554]: https://github.com/tokio-rs/tokio/pull/8554
+[#8558]: https://github.com/tokio-rs/tokio/pull/8558
+[#8560]: https://github.com/tokio-rs/tokio/pull/8560
+[#8562]: https://github.com/tokio-rs/tokio/pull/8562
+[#8564]: https://github.com/tokio-rs/tokio/pull/8564
+[#8566]: https://github.com/tokio-rs/tokio/pull/8566
+[#8570]: https://github.com/tokio-rs/tokio/pull/8570
+[#8574]: https://github.com/tokio-rs/tokio/pull/8574
 
 # 1.51.4 (July 16th, 2026)
 

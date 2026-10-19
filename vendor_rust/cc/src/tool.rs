@@ -1,14 +1,16 @@
 use crate::{
+    build_env::{BuildEnv, EnvSnapshot, EnvVars},
     command_helpers::{run_output, spawn_and_wait_for_output, CargoOutput, CommandExt},
     run,
     tempfile::NamedTempfile,
+    utilities::{HashRecorder, IgnoreAsciiCase, OnceLock, VecMap},
     Error, ErrorKind, OutputKind,
 };
 use std::{
     borrow::Cow,
-    collections::HashMap,
     env,
     ffi::{OsStr, OsString},
+    hash::Hash,
     io::Write,
     iter,
     path::{Path, PathBuf},
@@ -16,18 +18,102 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-pub(crate) type CompilerFamilyLookupCache = HashMap<Box<[Box<OsStr>]>, ToolFamily>;
+pub(crate) type CompilerFamilyLookupCache = VecMap<CompilerCommandKey, ToolFamily>;
 
-/// The environment a compiler is probed and invoked in, as set by
-/// [`Build::env`](crate::Build::env).
-pub(crate) type BuildEnv = [(Arc<OsStr>, Arc<OsStr>)];
+/// Whether a compiler command uses libc++, see [`Tool::uses_libcxx`].
+pub(crate) type CppStdlibLookupCache = VecMap<CompilerCommandKey, bool>;
 
-/// Separates the arguments from the environment in a
-/// [`CompilerFamilyLookupCache`] key.
-///
-/// `Command` rejects arguments containing a nul byte, so no argument can
-/// impersonate this and collide with an environment variable name.
-const CACHE_KEY_ENV_SEPARATOR: &str = "\0env\0";
+/// Key of the [`CompilerFamilyLookupCache`] and the [`CppStdlibLookupCache`]:
+/// a compiler command and the environment it runs in.
+#[derive(Debug, PartialEq)]
+pub(crate) struct CompilerCommandKey {
+    /// The hashable content of the compiler's path followed by its arguments.
+    command: Box<[u8]>,
+    /// What a probe finds depends on the environment it runs in (`PATH`
+    /// decides what a bare compiler name even resolves to), so two lookups
+    /// that agree on the command but differ in their environment must not
+    /// share an entry.
+    inherited: EnvSnapshot,
+    explicit: Box<EnvVars>,
+}
+
+impl CompilerCommandKey {
+    fn new(
+        command: &mut dyn Iterator<Item = &OsStr>,
+        inherited: EnvSnapshot,
+        explicit: Box<EnvVars>,
+    ) -> Self {
+        let mut recorder = HashRecorder::default();
+        for arg in command {
+            arg.hash(&mut recorder);
+        }
+        Self {
+            command: recorder.into_bytes(),
+            inherited,
+            explicit,
+        }
+    }
+}
+
+/// Write `contents` to a new file named like `name` for a probe to read, in
+/// `out_dir` or else in the temporary directory. The file is removed when the
+/// returned value is dropped.
+fn probe_source_file(
+    out_dir: Option<&Path>,
+    name: &str,
+    contents: &[u8],
+) -> Result<NamedTempfile, Error> {
+    let out_dir = out_dir
+        .map(Cow::Borrowed)
+        .unwrap_or_else(|| Cow::Owned(env::temp_dir()));
+
+    // Ensure all the parent directories exist otherwise temp file creation
+    // will fail
+    std::fs::create_dir_all(&out_dir).map_err(|err| Error {
+        kind: ErrorKind::IOError,
+        message: format!("failed to create OUT_DIR '{}': {}", out_dir.display(), err).into(),
+    })?;
+
+    let mut tmp = NamedTempfile::new(&out_dir, name).map_err(|err| Error {
+        kind: ErrorKind::IOError,
+        message: format!(
+            "failed to create {} temp file in '{}': {}",
+            name,
+            out_dir.display(),
+            err
+        )
+        .into(),
+    })?;
+    let mut tmp_file = tmp.take_file().unwrap();
+    tmp_file.write_all(contents)?;
+    // Close the file handle *now*, otherwise the compiler may fail to open it on Windows
+    // (#1082). The file stays on disk and its path remains valid until `tmp` is dropped.
+    tmp_file.flush()?;
+    tmp_file.sync_data()?;
+    drop(tmp_file);
+    Ok(tmp)
+}
+
+/// `args` without the flags that make a GNU-like compiler write a dependency
+/// file (`-M` and the like, also passed as `-Wp,-M...`), and without the file
+/// or target name that follows `-MF`, `-MT`, `-MQ` and `-MJ`.
+fn remove_dependency_output_flags(args: &[OsString]) -> Vec<&OsStr> {
+    args.iter()
+        .fold((Vec::new(), false), |(mut args, drop_next), arg| {
+            if drop_next {
+                return (args, false);
+            }
+
+            let arg_str = arg.to_str().unwrap_or_default();
+
+            if !(arg_str.starts_with("-M") || arg_str.starts_with("-Wp,-M")) {
+                args.push(arg.as_os_str());
+            }
+
+            (args, matches!(arg_str, "-MF" | "-MT" | "-MQ" | "-MJ"))
+        })
+        .0
+}
 
 /// Configuration used to represent an invocation of a C compiler.
 ///
@@ -43,7 +129,14 @@ pub struct Tool {
     pub(crate) cc_wrapper_path: Option<PathBuf>,
     pub(crate) cc_wrapper_args: Vec<OsString>,
     pub(crate) args: Vec<OsString>,
-    pub(crate) env: Vec<(OsString, OsString)>,
+    pub(crate) env: Vec<(Arc<OsStr>, Arc<OsStr>)>,
+    /// A copy of `env` for the deprecated `Tool::env()`, made on its first
+    /// call. cc only changes `env` while it builds a `Tool`, before handing
+    /// it out, and never calls `Tool::env()` itself, so the copy can't go
+    /// stale.
+    env_os_strings: OnceLock<Box<[(OsString, OsString)]>>,
+    /// The environment of the `Build` this came from, applied before `env`.
+    pub(crate) inherited_env: EnvSnapshot,
     pub(crate) family: ToolFamily,
     pub(crate) cuda: bool,
     pub(crate) removed_args: Vec<OsString>,
@@ -51,18 +144,22 @@ pub struct Tool {
 }
 
 impl Tool {
-    pub(crate) fn from_find_msvc_tools(tool: ::find_msvc_tools::Tool) -> Self {
+    pub(crate) fn from_find_msvc_tools(
+        tool: ::find_msvc_tools::Tool,
+        inherited_env: EnvSnapshot,
+    ) -> Self {
         let mut cc_tool = Self::with_family(
             tool.path().into(),
             ToolFamily::Msvc {
                 clang_cl: tool.is_clang_cl(),
             },
+            inherited_env,
         );
 
         cc_tool.env = tool
             .env()
             .into_iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
+            .map(|(k, v)| (k.as_os_str().into(), v.as_os_str().into()))
             .collect();
 
         cc_tool
@@ -106,13 +203,19 @@ impl Tool {
     }
 
     /// Explicitly set the `ToolFamily`, skipping name-based detection.
-    pub(crate) fn with_family(path: PathBuf, family: ToolFamily) -> Self {
+    pub(crate) fn with_family(
+        path: PathBuf,
+        family: ToolFamily,
+        inherited_env: EnvSnapshot,
+    ) -> Self {
         Self {
             path,
             cc_wrapper_path: None,
             cc_wrapper_args: Vec::new(),
             args: Vec::new(),
             env: Vec::new(),
+            env_os_strings: OnceLock::new(),
+            inherited_env,
             family,
             cuda: false,
             removed_args: Vec::new(),
@@ -141,7 +244,7 @@ impl Tool {
             .unwrap_or_default()
                 || {
                     match path.file_name().map(OsStr::to_string_lossy) {
-                        Some(fname) => fname.contains("zig"),
+                        Some(fname) => fname.contains_ignore_ascii_case("zig"),
                         _ => false,
                     }
                 }
@@ -166,8 +269,7 @@ impl Tool {
                     .set_family_detection_env(env),
                 &{
                     // the errors are not errors!
-                    let mut cargo_output = cargo_output.clone();
-                    cargo_output.warnings = cargo_output.debug;
+                    let mut cargo_output = cargo_output.quiet_unless_debug();
                     cargo_output.output = OutputKind::Discard;
                     cargo_output
                 },
@@ -202,42 +304,17 @@ impl Tool {
             cargo_output: &CargoOutput,
             out_dir: Option<&Path>,
         ) -> Result<ToolFamily, Error> {
-            let out_dir = out_dir
-                .map(Cow::Borrowed)
-                .unwrap_or_else(|| Cow::Owned(env::temp_dir()));
-
-            // Ensure all the parent directories exist otherwise temp file creation
-            // will fail
-            std::fs::create_dir_all(&out_dir).map_err(|err| Error {
-                kind: ErrorKind::IOError,
-                message: format!("failed to create OUT_DIR '{}': {}", out_dir.display(), err)
-                    .into(),
-            })?;
-
-            let mut tmp =
-                NamedTempfile::new(&out_dir, "detect_compiler_family.c").map_err(|err| Error {
-                    kind: ErrorKind::IOError,
-                    message: format!(
-                        "failed to create detect_compiler_family.c temp file in '{}': {}",
-                        out_dir.display(),
-                        err
-                    )
-                    .into(),
-                })?;
-            let mut tmp_file = tmp.take_file().unwrap();
-            tmp_file.write_all(include_bytes!("detect_compiler_family.c"))?;
-            // Close the file handle *now*, otherwise the compiler may fail to open it on Windows
-            // (#1082). The file stays on disk and its path remains valid until `tmp` is dropped.
-            tmp_file.flush()?;
-            tmp_file.sync_data()?;
-            drop(tmp_file);
+            let tmp = probe_source_file(
+                out_dir,
+                "detect_compiler_family.c",
+                include_bytes!("detect_compiler_family.c"),
+            )?;
 
             // When expanding the file, the compiler prints a lot of information to stderr
             // that it is not an error, but related to expanding itself.
             //
             // cc would have to disable warning here to prevent generation of too many warnings.
-            let mut compiler_detect_output = cargo_output.clone();
-            compiler_detect_output.warnings = compiler_detect_output.debug;
+            let compiler_detect_output = cargo_output.quiet_unless_debug();
 
             let mut cmd = Command::new(path);
             cmd.arg("-E").arg(tmp.path()).set_family_detection_env(env);
@@ -267,12 +344,7 @@ impl Tool {
                 )?
             } else {
                 if !status.success() {
-                    return Err(Error::new(
-                        ErrorKind::ToolExecError,
-                        format!(
-                            "command did not execute successfully (status code {status}): {cmd:?}"
-                        ),
-                    ));
+                    return Err(compiler_detect_output.command_failed(&cmd, status));
                 }
 
                 stdout
@@ -281,19 +353,15 @@ impl Tool {
             let stdout = String::from_utf8_lossy(&stdout);
             guess_family_from_stdout(&stdout, path, args, env, cargo_output)
         }
+        // The commands below only detect the compiler family, and cc falls
+        // back to the compiler's name when they fail.
+        let cargo_output = &cargo_output.for_detection_cmd();
         let detect_family = |path: &Path, args: &[String]| -> Result<ToolFamily, Error> {
-            // The detected family depends on the environment the probes run in
-            // - `PATH` decides what a bare compiler name even resolves to - so
-            // two lookups that agree on the path and arguments but differ in
-            // `Build::env` must not share an entry.
-            let cache_key = [path.as_os_str()]
-                .iter()
-                .cloned()
-                .chain(args.iter().map(OsStr::new))
-                .chain(iter::once(OsStr::new(CACHE_KEY_ENV_SEPARATOR)))
-                .chain(env.iter().flat_map(|(key, value)| [&**key, &**value]))
-                .map(Into::into)
-                .collect();
+            let cache_key = CompilerCommandKey::new(
+                &mut iter::once(path.as_os_str()).chain(args.iter().map(OsStr::new)),
+                env.inherited().clone(),
+                env.explicit.clone().into_boxed_slice(),
+            );
             if let Some(family) = cached_compiler_family.read().unwrap().get(&cache_key) {
                 return Ok(*family);
             }
@@ -311,11 +379,16 @@ impl Tool {
                 "Compiler family detection failed due to error: {e}"
             ));
             match path.file_name().map(OsStr::to_string_lossy) {
-                Some(fname) if fname.contains("clang-cl") => ToolFamily::Msvc { clang_cl: true },
-                Some(fname) if fname.ends_with("cl") || fname == "cl.exe" => {
+                Some(fname) if fname.contains_ignore_ascii_case("clang-cl") => {
+                    ToolFamily::Msvc { clang_cl: true }
+                }
+                Some(fname)
+                    if fname.ends_with_ignore_ascii_case("cl")
+                        || fname.eq_ignore_ascii_case("cl.exe") =>
+                {
                     ToolFamily::Msvc { clang_cl: false }
                 }
-                Some(fname) if fname.contains("clang") => {
+                Some(fname) if fname.contains_ignore_ascii_case("clang") => {
                     let is_clang_cl = args
                         .iter()
                         .any(|a| a.strip_prefix("--driver-mode=") == Some("cl"));
@@ -327,7 +400,9 @@ impl Tool {
                         }
                     }
                 }
-                Some(fname) if fname.contains("zig") => ToolFamily::Clang { zig_cc: true },
+                Some(fname) if fname.contains_ignore_ascii_case("zig") => {
+                    ToolFamily::Clang { zig_cc: true }
+                }
                 _ => ToolFamily::Gnu,
             }
         });
@@ -338,11 +413,55 @@ impl Tool {
             cc_wrapper_args: Vec::new(),
             args: Vec::new(),
             env: Vec::new(),
+            env_os_strings: OnceLock::new(),
+            inherited_env: env.inherited().clone(),
             family,
             cuda,
             removed_args: Vec::new(),
             has_internal_target_arg: false,
         }
+    }
+
+    /// Whether this C++ compiler uses libc++, found by preprocessing a file
+    /// that includes one of its C++ headers and checking for libc++'s
+    /// `_LIBCPP_VERSION`. The flags that write a dependency file are left out,
+    /// so the probe writes nothing next to the build's own files.
+    ///
+    /// An answer from the compiler is cached for its command and environment.
+    /// An error, such as a probe file that can't be written, is not.
+    pub(crate) fn uses_libcxx(
+        &self,
+        cache: &RwLock<CppStdlibLookupCache>,
+        cargo_output: &CargoOutput,
+        out_dir: Option<&Path>,
+    ) -> Result<bool, Error> {
+        let args = remove_dependency_output_flags(&self.args);
+        let mut cmd = self.command_with_args(&mut args.into_iter());
+        let key = CompilerCommandKey::new(
+            &mut iter::once(cmd.get_program()).chain(cmd.get_args()),
+            self.inherited_env.clone(),
+            self.env.clone().into_boxed_slice(),
+        );
+        if let Some(uses_libcxx) = cache.read().unwrap().get(&key) {
+            return Ok(*uses_libcxx);
+        }
+
+        let src = probe_source_file(
+            out_dir,
+            "detect_cpp_stdlib.cpp",
+            include_bytes!("detect_cpp_stdlib.cpp"),
+        )?;
+        cmd.arg("-E")
+            .arg(src.path())
+            .set_cpp_stdlib_detection_env(&self.env);
+        let stdout = run_output(
+            &mut cmd,
+            &cargo_output.for_detection_cmd().quiet_unless_debug(),
+        )?;
+        let uses_libcxx = String::from_utf8_lossy(&stdout).contains(r#""libcxx""#);
+
+        cache.write().unwrap().insert(key, uses_libcxx);
+        Ok(uses_libcxx)
     }
 
     /// Add an argument to be stripped from the final command arguments.
@@ -363,6 +482,31 @@ impl Tool {
             self.args.push("-Xcompiler".into());
         }
         self.args.push(flag);
+    }
+
+    /// [`push_cc_arg`](Self::push_cc_arg) for a string literal. Converting
+    /// it here rather than at each call keeps the callers small.
+    pub(crate) fn push_cc_str(&mut self, flag: &str) {
+        self.push_cc_arg(flag.into());
+    }
+
+    /// [`push_cc_arg`](Self::push_cc_arg) for each of `flags`.
+    pub(crate) fn push_cc_args(&mut self, flags: &[&str]) {
+        for flag in flags {
+            self.push_cc_str(flag);
+        }
+    }
+
+    /// Push `arg` to the end of the compiler's arguments as it is.
+    pub(crate) fn push_arg_str(&mut self, arg: &str) {
+        self.args.push(arg.into());
+    }
+
+    /// Push `args` to the end of the compiler's arguments as they are.
+    pub(crate) fn push_args(&mut self, args: &[&str]) {
+        for arg in args {
+            self.push_arg_str(arg);
+        }
     }
 
     /// Checks if an argument or flag has already been specified or conflicts.
@@ -407,7 +551,17 @@ impl Tool {
     /// This is useful for when the compiler needs to be executed and the
     /// command returned will already have the initial arguments and environment
     /// variables configured.
+    ///
+    /// The command does not inherit the process environment when it is
+    /// spawned. Its environment is set in full: the copy of the process
+    /// environment this `Tool` was made with (a [`Build`](crate::Build)'s copy,
+    /// see its docs), then [`Tool::get_envs`].
     pub fn to_command(&self) -> Command {
+        self.command_with_args(&mut self.args.iter().map(OsString::as_os_str))
+    }
+
+    /// Like [`Tool::to_command`], with `args` in place of [`Tool::args`].
+    fn command_with_args(&self, args: &mut dyn Iterator<Item = &OsStr>) -> Command {
         let mut cmd = match self.cc_wrapper_path {
             Some(ref cc_wrapper_path) => {
                 let mut cmd = Command::new(cc_wrapper_path);
@@ -416,9 +570,10 @@ impl Tool {
             }
             None => Command::new(&self.path),
         };
+        self.inherited_env.apply(&mut cmd);
         cmd.args(&self.cc_wrapper_args);
 
-        cmd.args(self.args.iter().filter(|a| !self.removed_args.contains(a)));
+        cmd.args(args.filter(|a| !self.removed_args.iter().any(|r| r.as_os_str() == *a)));
 
         for (k, v) in self.env.iter() {
             cmd.env(k, v);
@@ -445,8 +600,25 @@ impl Tool {
     /// operate.
     ///
     /// This is typically only used for MSVC compilers currently.
+    ///
+    /// The first call copies the variables. [`Tool::get_envs`] borrows them
+    /// instead.
+    #[deprecated = "use `get_envs` instead"]
     pub fn env(&self) -> &[(OsString, OsString)] {
-        &self.env
+        self.env_os_strings.get_or_init(|| {
+            self.get_envs()
+                .map(|(key, value)| (key.to_owned(), value.to_owned()))
+                .collect()
+        })
+    }
+
+    /// Returns the environment variables needed for this compiler to
+    /// operate, in the order [`Tool::to_command`] sets them, so a later entry
+    /// for a variable wins over an earlier one.
+    pub fn get_envs(
+        &self,
+    ) -> impl ExactSizeIterator<Item = (&OsStr, &OsStr)> + DoubleEndedIterator {
+        self.env.iter().map(|(key, value)| (&**key, &**value))
     }
 
     /// Returns the compiler command in format of CC environment variable.
@@ -616,5 +788,135 @@ impl ToolFamily {
 
     pub(crate) fn verbose_stderr(&self) -> bool {
         matches!(*self, ToolFamily::Clang { .. })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tool_env_wins_over_inherited_env() {
+        let mut tool = Tool::with_family(
+            "cc".into(),
+            ToolFamily::Gnu,
+            EnvSnapshot::from_pairs(&[("CC_TEST_ORDER", "inherited")]),
+        );
+        tool.env.push((
+            OsStr::new("CC_TEST_ORDER").into(),
+            OsStr::new("tool").into(),
+        ));
+        let cmd = tool.to_command();
+        let envs: Vec<_> = cmd.get_envs().collect();
+        assert_eq!(
+            envs,
+            [(OsStr::new("CC_TEST_ORDER"), Some(OsStr::new("tool")))]
+        );
+    }
+
+    /// Two entries for one variable, so that the order matters.
+    const ENV: [(&str, &str); 3] = [
+        ("CC_TEST_B", "first"),
+        ("CC_TEST_A", "a"),
+        ("CC_TEST_B", "last"),
+    ];
+
+    fn tool_with_env() -> Tool {
+        let mut tool =
+            Tool::with_family("cc".into(), ToolFamily::Gnu, EnvSnapshot::from_pairs(&[]));
+        tool.env = ENV
+            .iter()
+            .map(|(key, value)| (OsStr::new(key).into(), OsStr::new(value).into()))
+            .collect();
+        tool
+    }
+
+    #[test]
+    fn get_envs_yields_env_in_order() {
+        let tool = tool_with_env();
+        let expected: Vec<_> = ENV
+            .iter()
+            .map(|(key, value)| (OsStr::new(key), OsStr::new(value)))
+            .collect();
+
+        let mut envs = tool.get_envs();
+        assert_eq!(envs.size_hint(), (3, Some(3)));
+        envs.next();
+        assert_eq!(envs.len(), 2);
+
+        assert_eq!(tool.get_envs().collect::<Vec<_>>(), expected);
+        assert!(tool.get_envs().rev().eq(expected.into_iter().rev()));
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn env_returns_a_copy_of_env_in_order() {
+        let tool = tool_with_env();
+        let expected: Vec<(OsString, OsString)> = ENV
+            .iter()
+            .map(|(key, value)| (key.into(), value.into()))
+            .collect();
+
+        let cloned_before = tool.clone();
+        assert_eq!(tool.env(), expected);
+        assert!(std::ptr::eq(tool.env(), tool.env()));
+        let cloned_after = tool.clone();
+        assert_eq!(cloned_before.env(), expected);
+        assert_eq!(cloned_after.env(), expected);
+    }
+
+    #[test]
+    fn tool_keeps_auto_traits() {
+        use std::panic::{RefUnwindSafe, UnwindSafe};
+
+        fn assert_auto_traits<T: Clone + Send + Sync + Unpin + UnwindSafe + RefUnwindSafe>() {}
+        assert_auto_traits::<Tool>();
+    }
+
+    #[test]
+    fn command_key_tells_commands_apart() {
+        fn key(command: &[&OsStr]) -> CompilerCommandKey {
+            CompilerCommandKey::new(
+                &mut command.iter().copied(),
+                EnvSnapshot::from_pairs(&[]),
+                Box::new([]),
+            )
+        }
+        let os = OsStr::new;
+
+        assert_eq!(key(&[os("cc"), os("-O2")]), key(&[os("cc"), os("-O2")]));
+
+        for (a, b) in [
+            (
+                &[os("cc"), os("ab"), os("c")][..],
+                &[os("cc"), os("a"), os("bc")][..],
+            ),
+            (&[os("cc"), os("")], &[os("cc")]),
+            (&[os("cc"), os(""), os("")], &[os("cc"), os("")]),
+            (&[os("cc-O2")], &[os("cc"), os("-O2")]),
+        ] {
+            assert_ne!(key(a), key(b), "{a:?} vs {b:?}");
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn command_key_tells_unpaired_surrogates_apart() {
+        use std::os::windows::ffi::OsStringExt;
+
+        let key = |command: &[OsString]| {
+            CompilerCommandKey::new(
+                &mut command.iter().map(OsString::as_os_str),
+                EnvSnapshot::from_pairs(&[]),
+                Box::new([]),
+            )
+        };
+        // A lead and a trail surrogate in two arguments, and the pair they
+        // would make as one.
+        let lead = OsString::from_wide(&[0xD83D]);
+        let trail = OsString::from_wide(&[0xDE00]);
+        let pair = OsString::from_wide(&[0xD83D, 0xDE00]);
+        assert_ne!(key(&[lead.clone(), trail.clone()]), key(&[pair]));
+        assert_eq!(key(&[lead.clone(), trail.clone()]), key(&[lead, trail]));
     }
 }
