@@ -2,8 +2,8 @@ name: Update cargo-c
 
 on:
   schedule:
-    # Every Thursday at 09:00 UTC.
-    - cron: '0 9 * * 4'
+    # Every Monday at 02:00 UTC.
+    - cron: '0 2 * * 1'
   workflow_dispatch:
 
 permissions:
