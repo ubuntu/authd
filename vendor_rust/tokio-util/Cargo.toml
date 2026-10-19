@@ -11,9 +11,9 @@
 
 [package]
 edition = "2021"
-rust-version = "1.71"
+rust-version = "1.85"
 name = "tokio-util"
-version = "0.7.19"
+version = "0.7.20"
 authors = ["Tokio Contributors <team@tokio.rs>"]
 build = false
 autolib = false
@@ -132,6 +132,10 @@ name = "io_inspect"
 path = "tests/io_inspect.rs"
 
 [[test]]
+name = "io_read_arc"
+path = "tests/io_read_arc.rs"
+
+[[test]]
 name = "io_reader_stream"
 path = "tests/io_reader_stream.rs"
 
@@ -233,7 +237,7 @@ version = "0.4.4"
 optional = true
 
 [dependencies.tokio]
-version = "1.47.0"
+version = "1.51.0"
 features = ["sync"]
 
 [dependencies.tracing]
