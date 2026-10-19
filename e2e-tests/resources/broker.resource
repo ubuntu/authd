@@ -106,7 +106,7 @@ Continue Log In With Remote User Through CLI: Define Local Password
     Hid.Keys Combo    Return
 
     # Wait for the login to complete
-    Wait For Shell Prompt After Login    ${username}@ubuntu
+    Wait For Shell Prompt After Login    ${username.lower()}@ubuntu
 
 
 Wait For Shell Prompt After Login
@@ -153,7 +153,7 @@ Log In With Remote User Through CLI: Local Password
     Match Text    regex:Enter\\s*your\\s*(?:local\\s*)?password:    120
     Hid.Type String    ${local_password}
     Hid.Keys Combo    Return
-    Wait For Shell Prompt After Login    ${username}@ubuntu:~$
+    Wait For Shell Prompt After Login    ${username.lower()}@ubuntu:~$
 
 
 Check That su To Local User Goes To Local Broker
@@ -457,7 +457,7 @@ Log In With Remote User Through GDM: Local Password
 Check User Information
     [Arguments]    ${username}
     ${output} =    SSH.Execute    getent passwd ${username}
-    Should Contain    ${output}    ${username}:x:
+    Should Contain    ${output}    ${username.lower()}:x:
 
 
 Check Configuration Value
@@ -504,7 +504,7 @@ Check If User Was Added Properly
 
 Check User Groups
     [Arguments]    ${username}    ${remote_group}
-    ${output} =    SSH.Execute    groups ${username}
+    ${output} =    SSH.Execute    groups ${username.lower()}
     Should Contain    ${output}    sudo
     Should Contain    ${output}    ${remote_group}
 
