@@ -34,6 +34,7 @@ var (
 type Service struct {
 	name              string
 	interfaces        []*Interface
+	conn              *dbus.Conn
 	disconnect        func()
 	serve             chan struct{}
 	initializing      chan struct{}
@@ -82,6 +83,7 @@ func New(_ context.Context, brokerConfig broker.Config) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
+	service.conn = conn
 
 	var introspectableBody string
 	for i, iface := range interfaceNames {
@@ -162,6 +164,19 @@ func (s *Interface) brokerForCall() (*broker.Broker, error) {
 		return nil, errors.New("broker is not initialized")
 	}
 	return s.broker, nil
+}
+
+func (s *Service) uidForSender(sender dbus.Sender) (uint32, error) {
+	if s == nil || s.conn == nil {
+		return 0, errors.New("D-Bus connection is unavailable")
+	}
+
+	var uid uint32
+	err := s.conn.BusObject().Call("org.freedesktop.DBus.GetConnectionUnixUser", 0, string(sender)).Store(&uid)
+	if err != nil {
+		return 0, fmt.Errorf("could not determine UID for D-Bus sender %q: %w", sender, err)
+	}
+	return uid, nil
 }
 
 func (s *Service) initializationDone() {

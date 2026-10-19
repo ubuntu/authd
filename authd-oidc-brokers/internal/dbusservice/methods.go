@@ -3,11 +3,14 @@ package dbusservice
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/canonical/authd/authd-oidc-brokers/internal/broker"
 	"github.com/canonical/authd/log"
 	"github.com/godbus/dbus/v5"
 )
+
+const dbusAccessDeniedErrorName = "org.freedesktop.DBus.Error.AccessDenied"
 
 func dbusErrorForBrokerCall(err error) *dbus.Error {
 	var unavailableErr *brokerUnavailableError
@@ -15,6 +18,24 @@ func dbusErrorForBrokerCall(err error) *dbus.Error {
 		return dbus.NewError(brokerUnavailableDBusErrorName, []any{unavailableErr.Error()})
 	}
 	return dbus.MakeFailedError(err)
+}
+
+func authorizeDeleteUser(sender dbus.Sender, uidForSender func(dbus.Sender) (uint32, error)) *dbus.Error {
+	if sender == "" {
+		return dbus.NewError(dbusAccessDeniedErrorName, []any{"DeleteUser is restricted to root"})
+	}
+	if uidForSender == nil {
+		return dbus.MakeFailedError(errors.New("could not determine D-Bus caller UID"))
+	}
+
+	uid, err := uidForSender(sender)
+	if err != nil {
+		return dbus.MakeFailedError(fmt.Errorf("could not determine D-Bus caller UID: %w", err))
+	}
+	if uid != 0 {
+		return dbus.NewError(dbusAccessDeniedErrorName, []any{"DeleteUser is restricted to root"})
+	}
+	return nil
 }
 
 // NewSession is the method through which the broker and the daemon will communicate once dbusInterface.NewSession is called.
@@ -127,8 +148,20 @@ func (s *Interface) UserPreCheck(username string) (userinfo string, dbusErr *dbu
 // DeleteUser is the method through which the broker and the daemon will communicate once dbusInterface.DeleteUser is called.
 //
 // This is the v3+ version that accepts the providerID identifier for cache directory resolution.
-func (s *Interface) DeleteUser(username, providerID string) (dbusErr *dbus.Error) {
+func (s *Interface) DeleteUser(sender dbus.Sender, username, providerID string) (dbusErr *dbus.Error) {
 	log.Debugf(context.Background(), "DeleteUser (v3): username=%s provider_id=%s", username, providerID)
+	return s.deleteUser(sender, username, providerID)
+}
+
+func (s *Interface) deleteUser(sender dbus.Sender, username, providerID string) (dbusErr *dbus.Error) {
+	var uidForSender func(dbus.Sender) (uint32, error)
+	if s.service != nil {
+		uidForSender = s.service.uidForSender
+	}
+	if dbusErr := authorizeDeleteUser(sender, uidForSender); dbusErr != nil {
+		return dbusErr
+	}
+
 	b, err := s.brokerForCall()
 	if err != nil {
 		return dbusErrorForBrokerCall(err)
@@ -160,16 +193,9 @@ func (s *InterfaceV2) NewSession(username, lang, mode string) (sessionID, encryp
 }
 
 // DeleteUser is the method through which the broker and the daemon will communicate once dbusInterface.DeleteUser is called.
-func (s *InterfaceV2) DeleteUser(username string) (dbusErr *dbus.Error) {
+func (s *InterfaceV2) DeleteUser(sender dbus.Sender, username string) (dbusErr *dbus.Error) {
 	log.Debugf(context.Background(), "DeleteUser: %s", username)
-	b, err := s.brokerForCall()
-	if err != nil {
-		return dbusErrorForBrokerCall(err)
-	}
-	if err := b.DeleteUser(username, ""); err != nil {
-		return dbus.MakeFailedError(err)
-	}
-	return nil
+	return s.deleteUser(sender, username, "")
 }
 
 // makeCanceledError creates a dbus.Error for a canceled operation.
