@@ -1,8 +1,8 @@
-authd (0.7.1+git261016+1478+1eb47d98) stonking; urgency=medium
+authd (0.7.1+git261019+1486+1b194d10) stonking; urgency=medium
 
-  * Github build. Run id: 38907440945. Run number: 1478.
+  * Github build. Run id: 39256536441. Run number: 1486.
 
- -- Noor <nooreldeen.mansour@canonical.com>  Fri, 16 Oct 2026 13:30:35 +0000
+ -- dependabot <49699333+dependabot@users.noreply.github.com>  Mon, 19 Oct 2026 13:01:46 +0000
 
 authd (0.7.1) stonking; urgency=medium
 
