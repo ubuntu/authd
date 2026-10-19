@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.65.0"
 name = "cc"
-version = "1.5.1"
+version = "1.9.0"
 build = false
 exclude = [
     "/.github",
@@ -38,7 +38,11 @@ categories = ["development-tools::build-utils"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/rust-lang/cc-rs"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [features]
+compile-commands = []
 jobserver = []
 parallel = [
     "dep:jobserver",
@@ -50,7 +54,7 @@ name = "cc"
 path = "src/lib.rs"
 
 [dependencies.find-msvc-tools]
-version = "0.1.14"
+version = "0.1.15"
 
 [dependencies.jobserver]
 version = "0.1.32"

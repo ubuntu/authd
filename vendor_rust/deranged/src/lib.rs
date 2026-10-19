@@ -528,8 +528,8 @@ macro_rules! impl_ranged {
                 }
             }
 
-            /// Checked integer addition. Computes `self - rhs`, returning `None` if the resulting
-            /// value is out of range.
+            /// Checked integer subtraction. Computes `self - rhs`, returning `None` if the
+            /// resulting value is out of range.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[inline]
             pub const fn checked_sub(self, rhs: $internal) -> Option<Self> {
@@ -554,8 +554,8 @@ macro_rules! impl_ranged {
                 }
             }
 
-            /// Checked integer addition. Computes `self * rhs`, returning `None` if the resulting
-            /// value is out of range.
+            /// Checked integer multiplication. Computes `self * rhs`, returning `None` if the
+            /// resulting value is out of range.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[inline]
             pub const fn checked_mul(self, rhs: $internal) -> Option<Self> {
@@ -580,7 +580,7 @@ macro_rules! impl_ranged {
                 }
             }
 
-            /// Checked integer addition. Computes `self / rhs`, returning `None` if `rhs == 0` or
+            /// Checked integer division. Computes `self / rhs`, returning `None` if `rhs == 0` or
             /// if the resulting value is out of range.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[inline]
@@ -594,7 +594,7 @@ macro_rules! impl_ranged {
             ///
             /// # Safety
             ///
-            /// `self` must not be zero and the result of `self / rhs` must be in the range
+            /// `rhs` must not be zero and the result of `self / rhs` must be in the range
             /// `MIN..=MAX`.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[track_caller]
@@ -622,8 +622,8 @@ macro_rules! impl_ranged {
             ///
             /// # Safety
             ///
-            /// `self` must not be zero and the result of `self.div_euclid(rhs)` must be in the
-            /// range `MIN..=MAX`.
+            /// `rhs` must not be zero and the result of `self.div_euclid(rhs)` must be in the range
+            /// `MIN..=MAX`.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[track_caller]
             #[inline(always)]
@@ -663,20 +663,20 @@ macro_rules! impl_ranged {
                 Self::new(const_try_opt!(self.get().checked_rem(rhs)))
             }
 
-            /// Unchecked remainder. Computes `self % rhs`, assuming that `rhs != 0` and that the
-            /// result is in range.
+            /// Unchecked remainder. Computes `self % rhs`, assuming that safety invariants are
+            /// upheld.
             ///
             /// # Safety
             ///
-            /// `self` must not be zero and the result of `self % rhs` must be in the range
-            /// `MIN..=MAX`.
+            /// `rhs` must not be zero, the division must not overflow, and the result must be in
+            /// range.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[track_caller]
             #[inline(always)]
             pub const unsafe fn unchecked_rem(self, rhs: $internal) -> Self {
                 const { assert!(MIN <= MAX); }
-                // Safety: The caller must ensure that the result is in range and that `rhs` is not
-                // zero.
+                // Safety: The caller must ensure that the result is in range, `rhs` is not zero,
+                // and the remainder operation does not overflow.
                 unsafe {
                     Self::new_unchecked(self.get().checked_rem(rhs).unwrap_unchecked())
                 }
@@ -691,20 +691,20 @@ macro_rules! impl_ranged {
                 Self::new(const_try_opt!(self.get().checked_rem_euclid(rhs)))
             }
 
-            /// Unchecked Euclidean remainder. Computes `self.rem_euclid(rhs)`, assuming that
-            /// `rhs != 0` and that the result is in range.
+            /// Unchecked Euclidean remainder. Computes `self.rem_euclid(rhs)`, assuming that safety
+            /// invariants are upheld.
             ///
             /// # Safety
             ///
-            /// `self` must not be zero and the result of `self.rem_euclid(rhs)` must be in the
-            /// range `MIN..=MAX`.
+            /// `rhs` must not be zero, the division must not overflow, and the result must be in
+            /// range.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[track_caller]
             #[inline(always)]
             pub const unsafe fn unchecked_rem_euclid(self, rhs: $internal) -> Self {
                 const { assert!(MIN <= MAX); }
-                // Safety: The caller must ensure that the result is in range and that `rhs` is not
-                // zero.
+                // Safety: The caller must ensure that the result is in range, `rhs` is not zero,
+                // and the remainder operation does not overflow.
                 unsafe {
                     Self::new_unchecked(
                         self.get().checked_rem_euclid(rhs).unwrap_unchecked()
@@ -769,13 +769,15 @@ macro_rules! impl_ranged {
             ///
             /// # Safety
             ///
-            /// The result of `self << rhs` must be in the range `MIN..=MAX`.
+            /// `rhs` must be less than the number of bits in the inner integer type, and the
+            /// result of `self << rhs` must be in the range `MIN..=MAX`.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[track_caller]
             #[inline(always)]
             pub const unsafe fn unchecked_shl(self, rhs: u32) -> Self {
                 const { assert!(MIN <= MAX); }
-                // Safety: The caller must ensure that the result is in range.
+                // Safety: The caller must ensure that the shift count is valid and the result is
+                // in range.
                 unsafe {
                     // TOD(MSRV 1.93) use `unchecked_shl`
                     Self::new_unchecked(self.get().checked_shl(rhs).unwrap_unchecked())
@@ -795,13 +797,15 @@ macro_rules! impl_ranged {
             ///
             /// # Safety
             ///
-            /// The result of `self >> rhs` must be in the range `MIN..=MAX`.
+            /// `rhs` must be less than the number of bits in the inner integer type, and the
+            /// result of `self >> rhs` must be in the range `MIN..=MAX`.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[track_caller]
             #[inline(always)]
             pub const unsafe fn unchecked_shr(self, rhs: u32) -> Self {
                 const { assert!(MIN <= MAX); }
-                // Safety: The caller must ensure that the result is in range.
+                // Safety: The caller must ensure that the shift count is valid and the result is
+                // in range.
                 unsafe {
                     // TODO(MSRV 1.93) use `unchecked_shr`
                     Self::new_unchecked(self.get().checked_shr(rhs).unwrap_unchecked())
@@ -893,7 +897,7 @@ macro_rules! impl_ranged {
             }
 
             if_signed!($is_signed
-            /// Saturating integer negation. Computes `self - rhs`, saturating at the numeric
+            /// Saturating integer negation. Computes `-self`, saturating at the numeric
             /// bounds.
             #[must_use = "this returns the result of the operation, without modifying the original"]
             #[inline]
@@ -1073,6 +1077,54 @@ macro_rules! impl_ranged {
                             offset - (lesser_vals + 1)
                         )) as $internal
                     ) }
+                }
+            }
+
+            /// Calculates self + rhs.
+            ///
+            /// Returns a tuple of the addition along with a boolean indicating whether an arithmetic overflow would occur.
+            /// If an overflow would have occurred then the wrapped value is returned.
+            #[must_use = "this returns the result of the operation, without modifying the original"]
+            #[inline]
+            pub const fn overflowing_add(self, rhs: $internal) -> (Self, bool) {
+                const { assert!(MIN <= MAX); }
+
+                // Forward to internal type's impl if same as type.
+                if MIN == $internal::MIN && MAX == $internal::MAX {
+                    let (res, overflow) = self.get().overflowing_add(rhs);
+
+                    // Safety: std's wrapping methods match ranged arithmetic when the range is the internal datatype's range.
+                    return (unsafe { Self::new_unchecked(res) }, overflow)
+                }
+
+                if let Some(res) = self.checked_add(rhs) {
+                    (res, false)
+                } else {
+                    (self.wrapping_add(rhs), true)
+                }
+            }
+
+            /// Calculates self - rhs.
+            ///
+            /// Returns a tuple of the subtraction along with a boolean indicating whether an arithmetic overflow would occur.
+            /// If an overflow would have occurred then the wrapped value is returned.
+            #[must_use = "this returns the result of the operation, without modifying the original"]
+            #[inline]
+            pub const fn overflowing_sub(self, rhs: $internal) -> (Self, bool) {
+                const { assert!(MIN <= MAX); }
+
+                // Forward to internal type's impl if same as type.
+                if MIN == $internal::MIN && MAX == $internal::MAX {
+                    let (res, overflow) = self.get().overflowing_sub(rhs);
+
+                    // Safety: std's wrapping methods match ranged arithmetic when the range is the internal datatype's range.
+                    return (unsafe { Self::new_unchecked(res) }, overflow)
+                }
+
+                if let Some(res) = self.checked_sub(rhs) {
+                    (res, false)
+                } else {
+                    (self.wrapping_sub(rhs), true)
                 }
             }
         }
@@ -1279,7 +1331,7 @@ macro_rules! impl_ranged {
                     assert!(MIN_A <= MAX_A);
                     assert!(MIN_B <= MAX_B);
                 }
-                self.inner() == other.inner()
+                self.get().map(|value| value.get()) == other.get().map(|value| value.get())
             }
         }
 
@@ -1584,17 +1636,17 @@ macro_rules! impl_ranged {
             {
                 const { assert!(MIN <= MAX); }
                 let internal = <$internal>::deserialize(deserializer)?;
-                Self::new(internal).ok_or_else(||
+                Self::new(internal).ok_or_else(|| {
+                    #[cfg(feature = "alloc")]
+                    let s = alloc::format!("an integer in the range {}..={}", MIN, MAX);
+                    #[cfg(not(feature = "alloc"))]
+                    let s = "an integer in the valid range";
+
                     <D::Error as serde_core::de::Error>::invalid_value(
                         serde_core::de::Unexpected::Other("integer"),
-                        #[cfg(feature = "alloc")] {
-                            &alloc::format!("an integer in the range {}..={}", MIN, MAX).as_ref()
-                        },
-                        #[cfg(not(feature = "alloc"))] {
-                            &"an integer in the valid range"
-                        }
+                        &s.as_ref(),
                     )
-                )
+                })
             }
         }
 
@@ -1609,7 +1661,10 @@ macro_rules! impl_ranged {
                 -> Result<Self, D::Error>
             {
                 const { assert!(MIN <= MAX); }
-                Ok(Self::Some($type::<MIN, MAX>::deserialize(deserializer)?))
+                match Option::<$type<MIN, MAX>>::deserialize(deserializer)? {
+                    Some(value) => Ok(Self::Some(value)),
+                    None => Ok(Self::None),
+                }
             }
         }
 
@@ -1721,12 +1776,26 @@ macro_rules! impl_ranged {
 
         #[cfg(feature = "quickcheck")]
         impl<const MIN: $internal, const MAX: $internal> quickcheck::Arbitrary for $type<MIN, MAX> {
+            #[allow(trivial_numeric_casts)] // Normalize signed and unsigned values to unsigned bits.
             #[inline]
             fn arbitrary(g: &mut quickcheck::Gen) -> Self {
                 const { assert!(MIN <= MAX); }
-                // Safety: The `rem_euclid` call and addition ensure that the value is in range.
-                unsafe {
-                    Self::new_unchecked($internal::arbitrary(g).rem_euclid(MAX - MIN + 1) + MIN)
+                if const { MIN == <$internal>::MIN && MAX == <$internal>::MAX } {
+                    // Safety: Every value of the inner type is in the full range.
+                    unsafe { Self::new_unchecked(<$internal>::arbitrary(g)) }
+                } else {
+                    let range = (MAX as $unsigned_type)
+                        .wrapping_sub(MIN as $unsigned_type)
+                        .wrapping_add(1);
+                    let offset = (<$internal>::arbitrary(g) as $unsigned_type)
+                        .wrapping_sub(MIN as $unsigned_type)
+                        % range;
+                    let value = (MIN as $unsigned_type).wrapping_add(offset) as $internal;
+
+                    // Safety: The offset is less than the range width, so the value is in range.
+                    unsafe {
+                        Self::new_unchecked(value)
+                    }
                 }
             }
 

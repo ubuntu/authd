@@ -1,8 +1,9 @@
 use core::mem;
 
 use crate::{
+    build_env::EnvSnapshot,
     target::TargetInfo,
-    utilities::{cargo_env_var, OnceLock},
+    utilities::{lookup, OnceLock},
     Error, ErrorKind,
 };
 
@@ -17,9 +18,9 @@ struct TargetInfoParserInner {
 }
 
 impl TargetInfoParserInner {
-    fn from_cargo_environment_variables() -> Result<Self, Error> {
+    fn from_cargo_environment_variables(vars: &EnvSnapshot) -> Result<Self, Error> {
         // `TARGET` must be present.
-        let target_name = cargo_env_var("TARGET")?;
+        let target_name = vars.get_cargo_var("TARGET")?;
 
         // Parse the full architecture name from the target name.
         let (full_arch, _rest) = target_name.split_once('-').ok_or(Error::new(
@@ -27,8 +28,8 @@ impl TargetInfoParserInner {
             format!("target `{target_name}` only had a single component (at least two required)"),
         ))?;
 
-        let cargo_env = |key, fallback: Option<&str>| match cargo_env_var(key) {
-            Ok(var) => Ok(var.into_boxed_str()),
+        let cargo_env = |key, fallback: Option<&str>| match vars.get_cargo_var(key) {
+            Ok(var) => Ok(var.into()),
             Err(err) => match fallback {
                 Some(fallback) => Ok(fallback.into()),
                 None => Err(Error::new(
@@ -55,7 +56,7 @@ impl TargetInfoParserInner {
         // back back to data from the known set of target names instead.
         //
         // See discussion in #1225 for further details.
-        let fallback_target = TargetInfo::from_rustc_target(&target_name).ok();
+        let fallback_target = TargetInfo::from_rustc_target(target_name).ok();
         let ft = fallback_target.as_ref();
         let arch = cargo_env("CARGO_CFG_TARGET_ARCH", ft.map(|t| t.arch))?;
         let vendor = cargo_env("CARGO_CFG_TARGET_VENDOR", ft.map(|t| t.vendor))?;
@@ -95,10 +96,15 @@ impl TargetInfoParserInner {
 pub(crate) struct TargetInfoParser(OnceLock<Result<TargetInfoParserInner, Error>>);
 
 impl TargetInfoParser {
-    pub fn parse_from_cargo_environment_variables(&self) -> Result<TargetInfo<'_>, Error> {
+    /// Parse the target from Cargo's variables in `vars` on the first call.
+    /// Later calls return that result, so pass the same `vars` every time.
+    pub fn parse_from_cargo_environment_variables(
+        &self,
+        vars: &EnvSnapshot,
+    ) -> Result<TargetInfo<'_>, Error> {
         match self
             .0
-            .get_or_init(TargetInfoParserInner::from_cargo_environment_variables)
+            .get_or_init(|| TargetInfoParserInner::from_cargo_environment_variables(vars))
         {
             Ok(TargetInfoParserInner {
                 full_arch,
@@ -120,147 +126,152 @@ impl TargetInfoParser {
     }
 }
 
+/// Full architectures in target names, and the simpler `cfg(target_arch = "...")`
+/// that `rustc` exposes for them, see [`parse_arch`].
+///
+/// NOTE: Some of these don't necessarily match an existing target in `rustc`.
+/// They're parsed anyhow to be as forward-compatible as possible, while still
+/// being correct.
+///
+/// See also:
+/// - <https://docs.rs/cfg-expr/0.18.0/cfg_expr/targets/index.html>
+/// - <https://docs.rs/target-lexicon/0.13.2/target_lexicon/enum.Architecture.html>
+/// - <https://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html>
+/// - `clang -print-targets`
+const ARCHES: &[(&str, &str)] = &[
+    ("arm64ec", "arm64ec"), // https://github.com/rust-lang/rust/issues/131172
+    ("asmjs", "wasm32"),
+    // https://github.com/llvm-z80/rust-z80
+    ("z80", "z80"),
+    ("sm83", "sm83"),
+    ("sparc", "sparc"),
+    ("sparcv7", "sparc"),
+    ("sparcv8", "sparc"),
+    ("sparc64", "sparc64"),
+    ("sparcv9", "sparc64"),
+    ("amdgcn", "amdgpu"),
+    ("avr", "avr"),
+    ("csky", "csky"),
+    ("hexagon", "hexagon"),
+    ("m68k", "m68k"),
+    ("msp430", "msp430"),
+    ("r600", "r600"),
+    ("s390x", "s390x"),
+    ("xtensa", "xtensa"),
+    // Supported by gcc, but not LLVM: https://en.wikipedia.org/wiki/PA-RISC, also known as HPPA
+    ("hppa", "hppa"),
+];
+
+/// Like [`ARCHES`], for the start of the full architecture. The first match
+/// wins.
+const ARCH_PREFIXES: &[(&str, &str)] = &[
+    ("mipsisa32r6", "mips32r6"), // mipsisa32r6 | mipsisa32r6el
+    ("mipsisa64r6", "mips64r6"), // mipsisa64r6 | mipsisa64r6el
+    ("mips64", "mips64"),        // mips64 | mips64el
+    ("mips", "mips"),            // mips | mipsel
+    ("loongarch64", "loongarch64"),
+    ("loongarch32", "loongarch32"),
+    ("powerpc64", "powerpc64"), // powerpc64 | powerpc64le
+    ("powerpc", "powerpc"),
+    ("ppc64", "powerpc64"),
+    ("ppc", "powerpc"),
+    ("x86_64", "x86_64"),   // x86_64 | x86_64h
+    ("aarch64", "aarch64"), // aarch64 | aarch64_be
+    ("arm64", "aarch64"),   // arm64e | arm64_32
+    ("arm", "arm"),         // arm | armv7s | armeb | ...
+    ("thumb", "arm"),       // thumbv4t | thumbv7a | thumbv8m | ...
+    ("riscv64", "riscv64"),
+    ("riscv32", "riscv32"),
+    ("wasm64", "wasm64"),
+    ("wasm32", "wasm32"), // wasm32 | wasm32v1
+    ("nvptx64", "nvptx64"),
+    ("nvptx", "nvptx"),
+    ("bpf", "bpf"), // bpfeb | bpfel
+    ("sh4", "sh4"), // sh4 | sh4-unknown-linux-gnu | sh4-unknown-redox
+    // https://github.com/bytecodealliance/wasmtime/tree/v30.0.1/pulley
+    ("pulley64", "pulley64"),
+    ("pulley32", "pulley32"),
+    // https://github.com/Clever-ISA/Clever-ISA
+    ("clever", "clever"),
+    // Supported by gcc, but not LLVM.
+    ("alpha", "alpha"), // DEC Alpha
+    ("sh", "sh"),       // SuperH
+];
+
 /// Parse the full architecture in the target name into the simpler
 /// `cfg(target_arch = "...")` that `rustc` exposes.
-fn parse_arch(full_arch: &str) -> Option<&str> {
-    // NOTE: Some of these don't necessarily match an existing target in
-    // `rustc`. They're parsed anyhow to be as forward-compatible as possible,
-    // while still being correct.
-    //
-    // See also:
-    // https://docs.rs/cfg-expr/0.18.0/cfg_expr/targets/index.html
-    // https://docs.rs/target-lexicon/0.13.2/target_lexicon/enum.Architecture.html
-    // https://gcc.gnu.org/onlinedocs/gcc/Submodel-Options.html
-    // `clang -print-targets`
-    Some(match full_arch {
-        arch if arch.starts_with("mipsisa32r6") => "mips32r6", // mipsisa32r6 | mipsisa32r6el
-        arch if arch.starts_with("mipsisa64r6") => "mips64r6", // mipsisa64r6 | mipsisa64r6el
-
-        arch if arch.starts_with("mips64") => "mips64", // mips64 | mips64el
-        arch if arch.starts_with("mips") => "mips",     // mips | mipsel
-
-        arch if arch.starts_with("loongarch64") => "loongarch64",
-        arch if arch.starts_with("loongarch32") => "loongarch32",
-
-        arch if arch.starts_with("powerpc64") => "powerpc64", // powerpc64 | powerpc64le
-        arch if arch.starts_with("powerpc") => "powerpc",
-        arch if arch.starts_with("ppc64") => "powerpc64",
-        arch if arch.starts_with("ppc") => "powerpc",
-
-        arch if arch.starts_with("x86_64") => "x86_64", // x86_64 | x86_64h
-        arch if arch.starts_with("i") && arch.ends_with("86") => "x86", // i386 | i586 | i686
-
-        "arm64ec" => "arm64ec", // https://github.com/rust-lang/rust/issues/131172
-        arch if arch.starts_with("aarch64") => "aarch64", // arm64e | arm64_32
-        arch if arch.starts_with("arm64") => "aarch64", // aarch64 | aarch64_be
-
-        arch if arch.starts_with("arm") => "arm", // arm | armv7s | armeb | ...
-        arch if arch.starts_with("thumb") => "arm", // thumbv4t | thumbv7a | thumbv8m | ...
-
-        arch if arch.starts_with("riscv64") => "riscv64",
-        arch if arch.starts_with("riscv32") => "riscv32",
-
-        arch if arch.starts_with("wasm64") => "wasm64",
-        arch if arch.starts_with("wasm32") => "wasm32", // wasm32 | wasm32v1
-        "asmjs" => "wasm32",
-
-        arch if arch.starts_with("nvptx64") => "nvptx64",
-        arch if arch.starts_with("nvptx") => "nvptx",
-
-        arch if arch.starts_with("bpf") => "bpf", // bpfeb | bpfel
-        arch if arch.starts_with("sh4") => "sh4", // sh4 | sh4-unknown-linux-gnu | sh4-unknown-redox
-
-        // https://github.com/bytecodealliance/wasmtime/tree/v30.0.1/pulley
-        arch if arch.starts_with("pulley64") => "pulley64",
-        arch if arch.starts_with("pulley32") => "pulley32",
-
-        // https://github.com/Clever-ISA/Clever-ISA
-        arch if arch.starts_with("clever") => "clever",
-
-        // https://github.com/llvm-z80/rust-z80
-        "z80" => "z80",
-        "sm83" => "sm83",
-
-        "sparc" | "sparcv7" | "sparcv8" => "sparc",
-        "sparc64" | "sparcv9" => "sparc64",
-
-        "amdgcn" => "amdgpu",
-        "avr" => "avr",
-        "csky" => "csky",
-        "hexagon" => "hexagon",
-        "m68k" => "m68k",
-        "msp430" => "msp430",
-        "r600" => "r600",
-        "s390x" => "s390x",
-        "xtensa" => "xtensa",
-
-        // Arches supported by gcc, but not LLVM.
-        arch if arch.starts_with("alpha") => "alpha", // DEC Alpha
-        "hppa" => "hppa", // https://en.wikipedia.org/wiki/PA-RISC, also known as HPPA
-        arch if arch.starts_with("sh") => "sh", // SuperH
-        _ => return None,
-    })
+fn parse_arch(full_arch: &str) -> Option<&'static str> {
+    // i386 | i586 | i686
+    if full_arch.starts_with('i') && full_arch.ends_with("86") {
+        return Some("x86");
+    }
+    if let Some(arch) = lookup(ARCHES, full_arch) {
+        return Some(arch);
+    }
+    for (prefix, arch) in ARCH_PREFIXES {
+        if full_arch.starts_with(prefix) {
+            return Some(arch);
+        }
+    }
+    None
 }
+
+/// Environments and ABIs in the last component of target names, see
+/// [`parse_envabi`].
+const ENVABIS: &[(&str, (&str, &str))] = &[
+    // target that enables arm's pointer authentication
+    ("pauthtest", ("musl", "pauthtest")),
+    // Environments
+    ("msvc", ("msvc", "")),
+    ("ohos", ("ohos", "")),
+    ("qnx700", ("nto70", "")),
+    ("qnx710_iosock", ("nto71_iosock", "")),
+    ("qnx710", ("nto71", "")),
+    ("sgx", ("sgx", "")),
+    ("threads", ("threads", "")),
+    ("mlibc", ("mlibc", "")),
+    ("relibc", ("relibc", "")),
+    // ABIs
+    ("abi64", ("", "abi64")),
+    ("abiv2", ("", "spe")),
+    ("eabi", ("", "eabi")),
+    ("eabihf", ("", "eabihf")),
+    ("macabi", ("macabi", "")),
+    ("sim", ("sim", "")),
+    ("softfloat", ("", "softfloat")),
+    ("spe", ("", "spe")),
+    ("x32", ("", "x32")),
+    // Badly named targets, ELF is already known from target OS.
+    // Probably too late to fix now though.
+    ("elf", ("", "")),
+    // Undesirable to expose to user code (yet):
+    // https://github.com/rust-lang/rust/pull/131166#issuecomment-2389541917
+    ("freestanding", ("", "")),
+];
 
 /// Parse environment and ABI from the last component of the target name.
 fn parse_envabi(last_component: &str) -> Option<(&str, &str)> {
-    let (env, abi) = match last_component {
-        // Combined environment and ABI
-
-        // gnullvm | gnueabi | gnueabihf | gnuabiv2 | gnuabi64 | gnuspe | gnux32 | gnu_ilp32
-        env_and_abi if env_and_abi.starts_with("gnu") => {
-            let abi = env_and_abi.strip_prefix("gnu").unwrap();
-            let abi = abi.strip_prefix("_").unwrap_or(abi);
-            ("gnu", abi)
+    // Combined environment and ABI:
+    // gnullvm | gnueabi | gnueabihf | gnuabiv2 | gnuabi64 | gnuspe | gnux32 | gnu_ilp32
+    // musl | musleabi | musleabihf | muslabi64 | muslspe
+    // uclibc | uclibceabi | uclibceabihf
+    // newlib | newlibeabihf
+    for env in ["gnu", "musl", "uclibc", "newlib"] {
+        if let Some(abi) = last_component.strip_prefix(env) {
+            let abi = if env == "gnu" {
+                abi.strip_prefix('_').unwrap_or(abi)
+            } else {
+                abi
+            };
+            return Some((env, abi));
         }
-        // musl | musleabi | musleabihf | muslabi64 | muslspe
-        env_and_abi if env_and_abi.starts_with("musl") => {
-            ("musl", env_and_abi.strip_prefix("musl").unwrap())
+    }
+    for (component, envabi) in ENVABIS {
+        if *component == last_component {
+            return Some(*envabi);
         }
-        // uclibc | uclibceabi | uclibceabihf
-        env_and_abi if env_and_abi.starts_with("uclibc") => {
-            ("uclibc", env_and_abi.strip_prefix("uclibc").unwrap())
-        }
-        // newlib | newlibeabihf
-        env_and_abi if env_and_abi.starts_with("newlib") => {
-            ("newlib", env_and_abi.strip_prefix("newlib").unwrap())
-        }
-
-        // target that enables arm's pointer authentication
-        "pauthtest" => ("musl", "pauthtest"),
-
-        // Environments
-        "msvc" => ("msvc", ""),
-        "ohos" => ("ohos", ""),
-        "qnx700" => ("nto70", ""),
-        "qnx710_iosock" => ("nto71_iosock", ""),
-        "qnx710" => ("nto71", ""),
-        "sgx" => ("sgx", ""),
-        "threads" => ("threads", ""),
-        "mlibc" => ("mlibc", ""),
-        "relibc" => ("relibc", ""),
-
-        // ABIs
-        "abi64" => ("", "abi64"),
-        "abiv2" => ("", "spe"),
-        "eabi" => ("", "eabi"),
-        "eabihf" => ("", "eabihf"),
-        "macabi" => ("macabi", ""),
-        "sim" => ("sim", ""),
-        "softfloat" => ("", "softfloat"),
-        "spe" => ("", "spe"),
-        "x32" => ("", "x32"),
-
-        // Badly named targets, ELF is already known from target OS.
-        // Probably too late to fix now though.
-        "elf" => ("", ""),
-        // Undesirable to expose to user code (yet):
-        // https://github.com/rust-lang/rust/pull/131166#issuecomment-2389541917
-        "freestanding" => ("", ""),
-
-        _ => return None,
-    };
-    Some((env, abi))
+    }
+    None
 }
 
 impl<'a> TargetInfo<'a> {
@@ -361,7 +372,7 @@ impl<'a> TargetInfo<'a> {
             "3ds" | "rtems" | "espidf" => env = "newlib",
             "vxworks" => env = "gnu",
             "redox" => env = "relibc",
-            "aix" => abi = "vec-extabi",
+            "aix" => abi = "vec-default",
             _ => {}
         }
 
@@ -423,7 +434,7 @@ impl<'a> TargetInfo<'a> {
             "lynx" => "unknown",
             "oe" => "unknown",
             // Some Linux distributions set their name as the target vendor,
-            // so we have to assume that it can be an arbitary string.
+            // so we have to assume that it can be an arbitrary string.
             vendor => vendor,
         };
 

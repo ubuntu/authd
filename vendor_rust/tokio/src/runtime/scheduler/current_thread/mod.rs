@@ -577,8 +577,9 @@ impl Handle {
             target_arch = "s390x"
         )
     ))]
-    pub(crate) fn dump(&self) -> crate::runtime::Dump {
+    pub(crate) fn dump(self: &Arc<Self>) -> crate::runtime::Dump {
         use crate::runtime::dump;
+        use scheduler::Context::CurrentThread;
         use task::trace::trace_current_thread;
 
         let mut traces = vec![];
@@ -586,10 +587,9 @@ impl Handle {
         // todo: how to make this work outside of a runtime context?
         context::with_scheduler(|maybe_context| {
             // drain the local queue
-            let context = if let Some(context) = maybe_context {
-                context.expect_current_thread()
-            } else {
-                return;
+            let context = match maybe_context {
+                Some(CurrentThread(context)) if Arc::ptr_eq(self, &context.handle) => context,
+                _ => return,
             };
             let mut maybe_core = context.core.borrow_mut();
             let core = if let Some(core) = maybe_core.as_mut() {
@@ -727,6 +727,7 @@ impl Schedule for Arc<Handle> {
                 if let Some(core) = core.as_mut() {
                     core.push_task(self, task);
                 }
+                self.driver.unpark_self();
             }
             _ => {
                 // Track that a task was scheduled from **outside** of the runtime.
@@ -793,7 +794,9 @@ impl Wake for Handle {
             // If we are already running on the runtime, then it's not required to wake up the
             // runtime.
             context::with_scheduler(|maybe_cx| match maybe_cx {
-                Some(CurrentThread(cx)) if Arc::ptr_eq(arc_self, &cx.handle) => {}
+                Some(CurrentThread(cx)) if Arc::ptr_eq(arc_self, &cx.handle) => {
+                    arc_self.driver.unpark_self();
+                }
                 _ => {
                     arc_self.driver.unpark();
                 }
