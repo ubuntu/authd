@@ -27,6 +27,9 @@ updates:
       interval: "weekly"
       day: "thursday"
       time: "09:00"
+    groups:
+      minor-updates:
+        update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps(python)"
 
