@@ -5,7 +5,6 @@ package msentraid
 
 import (
 	"context"
-	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +14,6 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -25,7 +23,6 @@ import (
 	providerErrors "github.com/canonical/authd/authd-oidc-brokers/internal/providers/errors"
 	"github.com/canonical/authd/authd-oidc-brokers/internal/providers/info"
 	"github.com/canonical/authd/authd-oidc-brokers/internal/providers/msentraid/himmelblau"
-	"github.com/canonical/authd/authd-oidc-brokers/internal/providers/msentraid/tokenverify"
 	"github.com/canonical/authd/authd-oidc-brokers/internal/token"
 	"github.com/canonical/authd/log"
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -59,12 +56,6 @@ type Provider struct {
 
 	// Used as the token scopes of the access token for the Microsoft Graph API in tests.
 	tokenScopesForGraphAPI []string
-
-	// keySetMu guards keySets.
-	keySetMu sync.Mutex
-	// keySets caches RemoteKeySet instances by JWKS URI so that the in-memory
-	// key cache survives across logins for the same tenant.
-	keySets map[string]*tokenverify.RemoteKeySet
 }
 
 // SetGraphClientSecret stores the OIDC app's client secret so that GetGroups can
@@ -159,9 +150,9 @@ func (p *Provider) GetUserInfo(claimer info.Claimer, _ bool) (info.User, error) 
 }
 
 // UserInfoFromAccessToken extracts user info from an Entra access token's
-// claims. Access tokens use oid/upn-style claims rather than the OIDC
-// preferred_username/sub pair that GetUserInfo expects, so remap them first and
-// then reuse the standard GetUserInfo path.
+// claims without verifying the signature. Access tokens use oid/upn-style claims
+// rather than the OIDC preferred_username/sub pair that GetUserInfo expects, so
+// remap them first and then reuse the standard GetUserInfo path.
 func (p *Provider) UserInfoFromAccessToken(accessToken string) (info.User, error) {
 	parsed, _, err := new(jwt.Parser).ParseUnverified(accessToken, jwt.MapClaims{})
 	if err != nil {
@@ -299,8 +290,9 @@ func (p *Provider) GetGroups(
 		// Re-parse the newly acquired token.
 		accessToken, _, parseErr = new(jwt.Parser).ParseUnverified(accessTokenStr, jwt.MapClaims{})
 	}
-	// Parse the access token without signature verification, because we're not the audience of the token (that's
-	// the Microsoft Graph API) and we don't use it for authentication, but only to access the Microsoft Graph API.
+	// Decode this Graph token's claims without verifying its signature. Authd uses
+	// them for group lookup, not user identity; Microsoft Graph validates the
+	// bearer token when the request reaches the API.
 	if parseErr != nil {
 		return nil, fmt.Errorf("failed to parse access token: %w", parseErr)
 	}
@@ -824,39 +816,6 @@ func (p *Provider) RefreshEntraToken(ctx context.Context, issuerURL, refreshToke
 	}
 
 	return tok, nil
-}
-
-// VerifyAccessToken verifies the RS256 signature of the MFA-flow access token
-// against the tenant's published JWKS and that its tenant claim matches the one
-// in issuerURL. Microsoft first-party (e.g. Graph) tokens carry a header nonce
-// that is SHA256-rewritten before signing; tokenverify handles that. This is the
-// defense-in-depth check that the token genuinely came from Microsoft, so the
-// identity extracted from its claims does not rest on TLS alone.
-func (p *Provider) VerifyAccessToken(ctx context.Context, issuerURL, accessToken string) error {
-	u, err := url.Parse(issuerURL)
-	if err != nil {
-		return fmt.Errorf("could not parse issuer URL %q: %w", issuerURL, err)
-	}
-	segments := strings.Split(strings.Trim(u.Path, "/"), "/")
-	if len(segments) == 0 || segments[0] == "" {
-		return fmt.Errorf("could not derive tenant from issuer URL %q", issuerURL)
-	}
-	tenantID := segments[0]
-	jwksURI := fmt.Sprintf("%s://%s/%s/discovery/v2.0/keys", u.Scheme, u.Host, tenantID)
-
-	p.keySetMu.Lock()
-	if p.keySets == nil {
-		p.keySets = make(map[string]*tokenverify.RemoteKeySet)
-	}
-	if _, ok := p.keySets[jwksURI]; !ok {
-		p.keySets[jwksURI] = tokenverify.NewRemoteKeySet(jwksURI, nil)
-	}
-	keySet := p.keySets[jwksURI]
-	p.keySetMu.Unlock()
-
-	return tokenverify.Verify(accessToken, tenantID, func(kid string) (*rsa.PublicKey, error) {
-		return keySet.KeyForKID(ctx, kid)
-	})
 }
 
 // VerifyUsername checks if the authenticated username matches the requested username and that both are valid.

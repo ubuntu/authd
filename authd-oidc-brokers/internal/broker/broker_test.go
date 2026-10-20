@@ -73,13 +73,9 @@ type mockEntraAuthProvider struct {
 	registerDeviceCalls   int
 	refreshResult         *oauth2.Token // returned by RefreshEntraToken (defaults to a rotated token)
 	refreshErr            error         // when set, RefreshEntraToken returns it (e.g. AADSTS50057)
-	refreshDelay          time.Duration
-	refreshCtxDeadline    time.Time
-	verifyCtxDeadline     time.Time
-	userDisabledErrorCode string     // when set, IsUserDisabledError matches an *oauth2.RetrieveError with this code
-	verifyAccessTokenErr  error      // when set, VerifyAccessToken returns it (signature verification failure)
-	accessTokenUserInfo   *info.User // when set, UserInfoFromAccessToken returns this user info
-	userInfoFromTokenErr  error      // when set, UserInfoFromAccessToken returns this error
+	userDisabledErrorCode string        // when set, IsUserDisabledError matches an *oauth2.RetrieveError with this code
+	accessTokenUserInfo   *info.User    // when set, UserInfoFromAccessToken returns this user info
+	userInfoFromTokenErr  error         // when set, UserInfoFromAccessToken returns this error
 }
 
 type blockingMFAProvider struct {
@@ -94,13 +90,6 @@ func (p *blockingMFAProvider) AcquireTokenByMFAFlow(_ context.Context, _, _ stri
 	<-p.unblock
 	close(p.finished)
 	return nil, context.Canceled
-}
-
-func (p *mockEntraAuthProvider) VerifyAccessToken(ctx context.Context, _, _ string) error {
-	if deadline, ok := ctx.Deadline(); ok {
-		p.verifyCtxDeadline = deadline
-	}
-	return p.verifyAccessTokenErr
 }
 
 func (p *mockEntraAuthProvider) UserInfoFromAccessToken(_ string) (info.User, error) {
@@ -150,19 +139,7 @@ func (p *mockEntraAuthProvider) AcquireTokenByMFAFlow(_ context.Context, _, _ st
 	return p.mfaTokenResult, nil
 }
 
-func (p *mockEntraAuthProvider) RefreshEntraToken(ctx context.Context, _, _ string) (*oauth2.Token, error) {
-	if deadline, ok := ctx.Deadline(); ok {
-		p.refreshCtxDeadline = deadline
-	}
-	if p.refreshDelay > 0 {
-		timer := time.NewTimer(p.refreshDelay)
-		defer timer.Stop()
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-timer.C:
-		}
-	}
+func (p *mockEntraAuthProvider) RefreshEntraToken(_ context.Context, _, _ string) (*oauth2.Token, error) {
 	if p.refreshErr != nil {
 		return nil, p.refreshErr
 	}
@@ -383,8 +360,8 @@ func (p *mockMFAAlwaysWrongCodeProvider) AcquireTokenByMFAFlow(_ context.Context
 }
 
 // newMFATokenResult builds an oauth2.Token with access-token-style extras like
-// himmelblau.AcquireTokenByMFAFlow returns. Broker identity binding must come
-// from UserInfoFromAccessToken after VerifyAccessToken, not from these extras.
+// libhimmelblau returns. Broker identity binding comes from UserInfoFromAccessToken,
+// not from these extras.
 func newMFATokenResult(t *oauth2.Token) *oauth2.Token {
 	return t.WithExtra(map[string]any{
 		"preferred_username": "test-user@email.com",
@@ -3236,43 +3213,6 @@ func advanceToEntraMFAWait(t *testing.T, b *broker.Broker, sessionID, key string
 	require.NoError(t, err)
 }
 
-// TestIsAuthenticatedEntraAuthDeniesOnAccessTokenVerificationFailure verifies that
-// when the MFA access token fails signature verification (the TLS-MITM defense),
-// the login is denied rather than trusting the token's identity claims.
-func TestIsAuthenticatedEntraAuthDeniesOnAccessTokenVerificationFailure(t *testing.T) {
-	t.Parallel()
-
-	username := "test-user@email.com"
-	mfaAuthInfo := generateCachedInfo(t, tokenOptions{username: username, issuer: defaultIssuerURL})
-	provider := &mockEntraAuthProvider{
-		MockProvider: &testutils.MockProvider{},
-		flowState:    &himmelblau.MFAFlowState{},
-		challengeInfo: &himmelblau.MFAChallengeInfo{
-			Message:           "Approve the sign-in request",
-			PollingIntervalMs: 1,
-			MaxPollAttempts:   1,
-		},
-		mfaTokenResult:       newMFATokenResult(mfaAuthInfo.Token),
-		verifyAccessTokenErr: errors.New("token signature verification failed"),
-	}
-
-	b := newBrokerForTests(t, &brokerForTestConfig{
-		Config:                broker.Config{DataDir: t.TempDir()},
-		ownerAllowed:          true,
-		firstUserBecomesOwner: true,
-		provider:              provider,
-		issuerURL:             defaultIssuerURL,
-	})
-
-	sessionID, key := newSessionForTests(t, b, username, sessionmode.Login)
-	advanceToEntraMFAWait(t, b, sessionID, key)
-
-	access, _, err := b.IsAuthenticated(sessionID, "{}")
-	require.NoError(t, err)
-	require.Equal(t, broker.AuthDenied, access,
-		"an access token that fails signature verification must be denied")
-}
-
 // TestIsAuthenticatedEntraMFAWaitPollsWhenMaxPollAttemptsZero verifies that a
 // MaxPollAttempts value of 0 (which libhimmelblau can produce from
 // expires_in/polling_interval flooring to zero) still polls rather than returning
@@ -4179,72 +4119,6 @@ func runReturningEntraAuthLogin(t *testing.T, provider *mockEntraAuthProvider) (
 	require.NoError(t, err)
 
 	return b, sessionID, access
-}
-
-// TestIsAuthenticatedPasswordEntraTokenRefreshDeniesOnVerificationFailure verifies
-// that if the refreshed Entra password token fails signature verification the
-// returning login is denied — mirroring the first-login deny path in
-// TestIsAuthenticatedEntraAuthDeniesOnAccessTokenVerificationFailure.
-func TestIsAuthenticatedPasswordEntraTokenRefreshDeniesOnVerificationFailure(t *testing.T) {
-	t.Parallel()
-
-	provider := &mockEntraAuthProvider{
-		MockProvider: &testutils.MockProvider{GetGroupsFunc: func() ([]info.Group, error) {
-			return []info.Group{{Name: "remote-group"}}, nil
-		}},
-		refreshResult:        &oauth2.Token{AccessToken: "new-access-token", RefreshToken: "new-refresh-token"},
-		verifyAccessTokenErr: errors.New("token signature verification failed"),
-	}
-
-	b, sessionID, access := runReturningEntraAuthLogin(t, provider)
-	require.Equal(t, broker.AuthDenied, access,
-		"a refreshed token that fails signature verification must deny the returning login")
-
-	cached, err := token.LoadAuthInfo(b.TokenPathForSession(sessionID))
-	require.NoError(t, err)
-	require.Equal(t, "new-refresh-token", cached.Token.RefreshToken,
-		"a local verification failure must not discard an already-rotated refresh token")
-}
-
-// TestIsAuthenticatedPasswordEntraTokenRefreshVerificationHasOwnTimeout verifies
-// that access-token verification gets its own request timeout after a successful
-// Entra password token refresh. Verification may fetch JWKS on a cold cache or
-// key rotation; it must not inherit only the leftover time from the refresh call.
-func TestIsAuthenticatedPasswordEntraTokenRefreshVerificationHasOwnTimeout(t *testing.T) {
-	t.Parallel()
-
-	const correctPassword = "password"
-	const refreshDelay = 50 * time.Millisecond
-	provider := &mockEntraAuthProvider{
-		MockProvider: &testutils.MockProvider{GetGroupsFunc: func() ([]info.Group, error) {
-			return []info.Group{{Name: "remote-group"}}, nil
-		}},
-		refreshDelay:  refreshDelay,
-		refreshResult: &oauth2.Token{AccessToken: "new-access-token", RefreshToken: "new-refresh-token"},
-	}
-
-	b := newBrokerForTests(t, &brokerForTestConfig{
-		Config:                broker.Config{DataDir: t.TempDir()},
-		ownerAllowed:          true,
-		firstUserBecomesOwner: true,
-		provider:              provider,
-		issuerURL:             defaultIssuerURL,
-	})
-
-	sessionID, key := newSessionForTests(t, b, "test-user@email.com", sessionmode.Login)
-	generateAndStoreCachedInfo(t, tokenOptions{obtainedViaEntraAuth: true}, b.TokenPathForSession(sessionID))
-	require.NoError(t, password.HashAndStorePassword(correctPassword, b.PasswordFilepathForSession(sessionID)))
-
-	updateAuthModes(t, b, sessionID, authmodes.Password)
-	authData := fmt.Sprintf(`{"%s":"%s"}`, broker.AuthDataSecret, encryptSecret(t, correctPassword, key))
-	access, _, err := b.IsAuthenticated(sessionID, authData)
-	require.NoError(t, err)
-	require.Equal(t, broker.AuthGranted, access)
-
-	require.False(t, provider.refreshCtxDeadline.IsZero(), "refresh call should receive a deadline")
-	require.False(t, provider.verifyCtxDeadline.IsZero(), "verification call should receive a deadline")
-	require.GreaterOrEqual(t, provider.verifyCtxDeadline.Sub(provider.refreshCtxDeadline), refreshDelay/2,
-		"verification should get a fresh timeout instead of sharing the refresh context")
 }
 
 // TestIsAuthenticatedPasswordEntraTokenRefreshPreservesRotationOnUserInfoError
@@ -6525,11 +6399,9 @@ func TestEntraMFACodeAuthReplaysStaleDuplicateCall(t *testing.T) {
 	require.Equal(t, []string{authmodes.NewPassword}, b.GetNextAuthModes(sessionID))
 }
 
-// TestIsAuthenticatedEntraAuthUsesVerifiedAccessTokenIdentity verifies that
-// first-login identity comes from UserInfoFromAccessToken after VerifyAccessToken,
-// not from OAuth token extras that may have been sourced from an unverified
-// id_token by libhimmelblau.
-func TestIsAuthenticatedEntraAuthUsesVerifiedAccessTokenIdentity(t *testing.T) {
+// TestIsAuthenticatedEntraAuthUsesAccessTokenIdentity verifies that first-login
+// identity comes from UserInfoFromAccessToken, not OAuth token extras.
+func TestIsAuthenticatedEntraAuthUsesAccessTokenIdentity(t *testing.T) {
 	t.Parallel()
 
 	username := "test-user@email.com"
@@ -6542,10 +6414,10 @@ func TestIsAuthenticatedEntraAuthUsesVerifiedAccessTokenIdentity(t *testing.T) {
 			PollingIntervalMs: 1,
 			MaxPollAttempts:   1,
 		},
-		accessTokenUserInfo: &info.User{Name: username, ProviderID: "verified-access-token-user-id"},
+		accessTokenUserInfo: &info.User{Name: username, ProviderID: "access-token-user-id"},
 		mfaTokenResult: mfaAuthInfo.Token.WithExtra(map[string]any{
 			"preferred_username": "someone-else@email.com",
-			"sub":                "unverified-id-token-user-id",
+			"sub":                "other-token-extra-user-id",
 			"name":               "Someone Else",
 		}),
 	}
@@ -6564,18 +6436,18 @@ func TestIsAuthenticatedEntraAuthUsesVerifiedAccessTokenIdentity(t *testing.T) {
 	access, _, err := b.IsAuthenticated(sessionID, "{}")
 	require.NoError(t, err)
 	require.Equal(t, broker.AuthGranted, access,
-		"a first-login MFA token must bind identity to the verified access-token claims, not token extras")
+		"a first-login MFA token must bind identity to the access-token claims, not token extras")
 
 	cached, err := token.LoadAuthInfo(b.TokenPathForSession(sessionID))
 	require.NoError(t, err)
-	require.Equal(t, "verified-access-token-user-id", cached.UserInfo.ProviderID)
+	require.Equal(t, "access-token-user-id", cached.UserInfo.ProviderID)
 }
 
 // TestIsAuthenticatedEntraAuthDeniesOnUsernameMismatch verifies the first-login
-// identity cross-check: when the verified MFA access token identity does not
-// match the username the user authenticated as, VerifyUsername fails and the
-// login is denied. This is the first-login counterpart to the refresh-path
-// mismatch test (TestIsAuthenticatedPasswordEntraTokenRefreshDeniesOnUsernameMismatch).
+// identity cross-check: when the access-token identity does not match the
+// username the user authenticated as, VerifyUsername fails and the login is
+// denied. This is the first-login counterpart to the refresh-path mismatch test
+// (TestIsAuthenticatedPasswordEntraTokenRefreshDeniesOnUsernameMismatch).
 func TestIsAuthenticatedEntraAuthDeniesOnUsernameMismatch(t *testing.T) {
 	t.Parallel()
 
