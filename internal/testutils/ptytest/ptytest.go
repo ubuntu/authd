@@ -881,16 +881,21 @@ func (c *Console) Close(t *testing.T) {
 	}
 
 	select {
-	case <-c.done:
-		// Process already exited.
-		t.Logf("ptytest: process %d exited gracefully after PTY close", c.cmd.Process.Pid)
+	case err := <-c.done:
+		if err != nil {
+			t.Logf("ptytest: process %d exited after PTY close: %v", c.cmd.Process.Pid, err)
+		} else {
+			t.Logf("ptytest: process %d exited gracefully after PTY close", c.cmd.Process.Pid)
+		}
 	case <-time.After(5 * time.Second):
 		// Force kill.
 		t.Logf("ptytest: killing launcher process %d (command pid %d did not exit after PTY close)",
 			c.cmd.Process.Pid, c.Pid())
 		c.logProcessDiagnostics(t)
 		_ = c.cmd.Process.Kill()
-		<-c.done
+		if err := <-c.done; err != nil {
+			t.Logf("ptytest: wait for process %d after kill returned: %v", c.cmd.Process.Pid, err)
+		}
 	}
 }
 
