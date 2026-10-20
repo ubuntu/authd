@@ -161,15 +161,19 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 		gPasswdExited <- err
 	}()
 
+	gPasswdFinishedWhileLocked := false
 	select {
 	case <-time.After(3 * time.Second):
 		// If we're time-outing: it's fine, it means we were locked!
 	case err := <-gPasswdExited:
 		require.ErrorIs(t, err, userslocking.ErrLock, "GPasswd should fail")
+		gPasswdFinishedWhileLocked = true
 	}
 
 	require.NoError(t, userslocking.WriteUnlock())
-	<-gPasswdExited
+	if !gPasswdFinishedWhileLocked {
+		require.NoError(t, <-gPasswdExited, "GPasswd should succeed after unlocking")
+	}
 }
 
 func TestUnlockUnlockedOverridden(t *testing.T) {
