@@ -154,7 +154,7 @@ jobs:
               exit 1
             fi
             echo "cache-hit=true" >> "${GITHUB_OUTPUT}"
-          elif [[ "$pull_output" == *"MANIFEST_UNKNOWN"* ]]; then
+          elif [[ "$pull_output" == *"${OCI_REPO}:${OCI_TAG}: not found" ]]; then
             echo "VM image not found in OCI registry; provisioning is required."
             echo "cache-hit=false" >> "${GITHUB_OUTPUT}"
           else
