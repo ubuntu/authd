@@ -192,9 +192,9 @@ Templates` and a region-of-interest selector to crop and scope matches.
 These come straight from patterns the existing suite relies on — reproduce them:
 
 - **Strip spaces and normalize case** when matching machine-generated codes. The
-  device user code handling in `Continue Log In With Remote User: Authenticate
-  In External Browser` removes OCR-inserted spaces and upper-cases the result,
-  because OCR adds phantom spaces and mis-cases characters.
+  device user code handling in `Extract Device Code` upper-cases the result,
+  because OCR mis-cases characters; the broker regexes and
+  `StringUtils.First Match` already handle the phantom spaces OCR adds.
 - **Prefer `regex:` matches** for anything variable. `Find Text` / `Match Text`
   accept `regex:<pattern>`; use it instead of brittle exact strings when the
   text contains values that vary or that OCR renders inconsistently.
