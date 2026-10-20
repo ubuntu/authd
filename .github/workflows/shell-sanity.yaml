@@ -6,9 +6,9 @@ on:
     paths: &paths
       - ".github/workflows/shell-sanity.yaml"
       - ".shellcheckrc"
-      - "authd-oidc-brokers/.shellcheckrc"
+      - "brokers/.shellcheckrc"
       - "**.sh"
-      - "authd-oidc-brokers/tools/install-cargo-c"
+      - "brokers/tools/install-cargo-c"
       - "debian/postinst"
       - "debian/postrm"
       - "debian/prerm"
