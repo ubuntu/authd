@@ -1,7 +1,7 @@
 required-version = ">=0.16.8"
 
 extend-exclude = [
-    "authd-oidc-brokers/third_party/libhimmelblau/**",
+    "brokers/third_party/libhimmelblau/**",
     "docs/**",
     "e2e-tests/.yarf/**",
 ]
