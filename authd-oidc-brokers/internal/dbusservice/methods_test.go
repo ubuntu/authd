@@ -10,6 +10,7 @@ import (
 	"github.com/canonical/authd/authd-oidc-brokers/internal/dbusservice"
 	"github.com/canonical/authd/authd-oidc-brokers/internal/testutils"
 	"github.com/canonical/authd/log"
+	"github.com/godbus/dbus/v5"
 	"github.com/stretchr/testify/require"
 )
 
@@ -130,13 +131,14 @@ func TestUserPreCheck(t *testing.T) {
 	require.Nil(t, dbusErr, "UserPreCheck should not return a D-Bus error")
 }
 
-func TestDeleteUser(t *testing.T) {
+func TestDeleteUserRequiresRootCaller(t *testing.T) {
 	t.Parallel()
 
 	iface := newInterfaceForTests(t)
 
-	require.Nil(t, iface.DeleteUser("user@example.com", "provider-id"), "DeleteUser should not return a D-Bus error")
-	require.NotNil(t, iface.DeleteUser("invalid/../user", ""), "DeleteUser with an invalid username should return a D-Bus error")
+	dbusErr := iface.DeleteUser(dbus.Sender(""), "user@example.com", "provider-id")
+	require.NotNil(t, dbusErr, "DeleteUser should reject a call without a D-Bus sender")
+	require.Equal(t, "org.freedesktop.DBus.Error.AccessDenied", dbusErr.Name)
 }
 
 func TestInterfaceV2(t *testing.T) {
@@ -151,8 +153,9 @@ func TestInterfaceV2(t *testing.T) {
 	_, _, dbusErr = iface.NewSession("", "lang", sessionmode.Login)
 	require.NotNil(t, dbusErr, "NewSession (v2) with an empty username should return a D-Bus error")
 
-	require.Nil(t, iface.DeleteUser("user@example.com"), "DeleteUser (v2) should not return a D-Bus error")
-	require.NotNil(t, iface.DeleteUser("invalid/../user"), "DeleteUser (v2) with an invalid username should return a D-Bus error")
+	dbusErr = iface.DeleteUser(dbus.Sender(""), "user@example.com")
+	require.NotNil(t, dbusErr, "DeleteUser (v2) should reject a call without a D-Bus sender")
+	require.Equal(t, "org.freedesktop.DBus.Error.AccessDenied", dbusErr.Name)
 }
 
 func TestMain(m *testing.M) {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -116,6 +117,113 @@ entra_auth = false
 		require.NotEmpty(t, encryptionKey, "The queued activation call should return an encryption key")
 	case <-time.After(5 * time.Second):
 		t.Fatal("The queued activation call did not complete")
+	}
+}
+
+func TestDeleteUserOverSystemBusChecksCallerUID(t *testing.T) {
+	cleanup, err := testutils.StartSystemBusMock()
+	require.NoError(t, err, "Setup: starting the mock bus should not fail")
+	defer cleanup()
+
+	configPath := filepath.Join(t.TempDir(), "broker.conf")
+	require.NoError(t, os.WriteFile(configPath, []byte(`[oidc]
+issuer = `+defaultIssuerURL+`
+client_id = test-client-id
+
+[flows]
+entra_auth = false
+`), 0600), "Setup: writing the broker config should not fail")
+
+	dataDir := t.TempDir()
+	service, err := dbusservice.New(context.Background(), broker.Config{
+		ConfigFile: configPath,
+		DataDir:    dataDir,
+	})
+	require.NoError(t, err, "Setup: starting the D-Bus service should not fail")
+	defer func() { _ = service.Stop() }()
+
+	client, err := testutils.GetSystemBusConnection(t)
+	require.NoError(t, err, "Setup: connecting to the mock bus should not fail")
+	defer client.Close()
+
+	const username = "user@example.com"
+	const providerID = "provider-id"
+	tests := []struct {
+		name             string
+		method           string
+		args             []any
+		deletedCacheKeys []string
+		wantErrorName    string
+	}{
+		{
+			name: "v1 deletes username cache", method: "com.ubuntu.authd.Broker.DeleteUser",
+			args: []any{username}, deletedCacheKeys: []string{username},
+		},
+		{
+			name: "v2 deletes username cache", method: "com.ubuntu.authd.Broker2.DeleteUser",
+			args: []any{username}, deletedCacheKeys: []string{username},
+		},
+		{
+			name: "v3 deletes username and provider ID caches", method: "com.ubuntu.authd.Broker3.DeleteUser",
+			args: []any{username, providerID}, deletedCacheKeys: []string{username, providerID},
+		},
+		{
+			name: "v3 deletes provider ID cache without username", method: "com.ubuntu.authd.Broker3.DeleteUser",
+			args: []any{"", providerID}, deletedCacheKeys: []string{providerID},
+		},
+		{
+			name: "v1 rejects invalid username", method: "com.ubuntu.authd.Broker.DeleteUser",
+			args: []any{"invalid/../user"}, wantErrorName: "org.freedesktop.DBus.Error.Failed",
+		},
+		{
+			name: "v2 rejects invalid username", method: "com.ubuntu.authd.Broker2.DeleteUser",
+			args: []any{"invalid/../user"}, wantErrorName: "org.freedesktop.DBus.Error.Failed",
+		},
+		{
+			name: "v3 rejects invalid username", method: "com.ubuntu.authd.Broker3.DeleteUser",
+			args: []any{"invalid/../user", ""}, wantErrorName: "org.freedesktop.DBus.Error.Failed",
+		},
+		{
+			name: "v3 rejects invalid provider ID", method: "com.ubuntu.authd.Broker3.DeleteUser",
+			args: []any{username, "invalid/../provider-id"}, wantErrorName: "org.freedesktop.DBus.Error.Failed",
+		},
+	}
+	issuerDir := filepath.Join(dataDir, strings.ReplaceAll(strings.TrimPrefix(defaultIssuerURL, "http://"), ":", "_"))
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, cacheKey := range []string{username, providerID} {
+				cacheDir := filepath.Join(issuerDir, cacheKey)
+				require.NoError(t, os.MkdirAll(cacheDir, 0700), "Setup: creating the cache directory should not fail")
+				require.NoError(t, os.WriteFile(filepath.Join(cacheDir, "password"), []byte("cached-password"), 0600),
+					"Setup: writing cached data should not fail")
+			}
+
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+			defer cancel()
+			call := client.Object(consts.DbusName, dbus.ObjectPath(consts.DbusObject)).CallWithContext(ctx, tc.method, 0, tc.args...)
+			wantErrorName := tc.wantErrorName
+			if os.Geteuid() != 0 {
+				wantErrorName = "org.freedesktop.DBus.Error.AccessDenied"
+			}
+			if wantErrorName == "" {
+				require.NoError(t, call.Err, "A root caller should be allowed to delete cached data")
+			} else {
+				var dbusErr dbus.Error
+				require.ErrorAs(t, call.Err, &dbusErr)
+				require.Equal(t, wantErrorName, dbusErr.Name)
+			}
+
+			for _, cacheKey := range []string{username, providerID} {
+				cacheDir := filepath.Join(issuerDir, cacheKey)
+				if os.Geteuid() == 0 && slices.Contains(tc.deletedCacheKeys, cacheKey) {
+					require.NoDirExists(t, cacheDir, "The requested cache directory should be deleted")
+					continue
+				}
+				data, err := os.ReadFile(filepath.Join(cacheDir, "password"))
+				require.NoError(t, err, "Unrequested caches and caches from denied or invalid calls must be preserved")
+				require.Equal(t, "cached-password", string(data))
+			}
+		})
 	}
 }
 
