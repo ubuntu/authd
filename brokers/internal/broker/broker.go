@@ -1557,7 +1557,7 @@ func (b *Broker) deviceAuth(ctx context.Context, session *session) (string, isAu
 	groups, err := b.getGroups(ctx, session, authInfo)
 	// A device-code login never falls back to cached groups: a failed lookup
 	// denies the login.
-	if access, data := b.handleGroupFetch(session, authInfo, nil, groups, err); access != "" {
+	if access, data := b.handleGroupFetch(ctx, session, authInfo, nil, groups, err); access != "" {
 		return access, data
 	}
 
@@ -1697,7 +1697,7 @@ func (b *Broker) passwordAuth(ctx context.Context, session *session, secret stri
 
 	// Try to refresh the groups
 	groups, err := b.getGroups(ctx, session, authInfo)
-	if access, data := b.handleGroupFetch(session, authInfo, authInfo, groups, err); access != "" {
+	if access, data := b.handleGroupFetch(ctx, session, authInfo, authInfo, groups, err); access != "" {
 		return access, data
 	}
 
@@ -2513,7 +2513,7 @@ func (b *Broker) finishEntraAuth(ctx context.Context, session *session, mfaToken
 	// group-fetch failure is not a liveness signal: fall back to cached groups
 	// on a returning auth, and only deny first-time logins that have no cached groups.
 	groups, err := b.getGroups(ctx, session, authInfo)
-	if access, data := b.handleGroupFetch(session, authInfo, oldAuthInfo, groups, err); access != "" {
+	if access, data := b.handleGroupFetch(ctx, session, authInfo, oldAuthInfo, groups, err); access != "" {
 		return access, data
 	}
 
@@ -3228,20 +3228,36 @@ func (b *Broker) maybeRegisterDevice(ctx context.Context, session *session, auth
 		return cleanup, "", nil
 	}
 
+	if err := ctx.Err(); err != nil {
+		return cleanup, AuthCancelled, nil
+	}
+
 	// The provider must not modify existingData (see providers.DeviceRegisterer),
 	// so comparing the returned data against it detects a fresh registration.
-	var err error
-	authInfo.DeviceRegistrationData, cleanup, err = dr.MaybeRegisterDevice(ctx, regToken,
+	deviceRegistrationData, cleanup, err := dr.MaybeRegisterDevice(ctx, regToken,
 		session.username,
 		b.cfg.issuerURL,
 		existingData,
 	)
 	if err != nil {
+		// The cleanup of a failed call must not be used: it can be nil.
+		if ctx.Err() != nil {
+			return func() {}, AuthCancelled, nil
+		}
 		log.Errorf(context.Background(), "error registering device: %s", err)
 		return func() {}, AuthDenied, errorMessage{Message: "Error registering device"}
 	}
-	if len(authInfo.DeviceRegistrationData) > 0 &&
-		!slices.Equal(authInfo.DeviceRegistrationData, existingData) {
+
+	fresh := len(deviceRegistrationData) > 0 && !slices.Equal(deviceRegistrationData, existingData)
+	// A cancelled request must not store its result, which could overwrite the
+	// state of a later login. The exception is a new registration: the
+	// enrollment cannot be undone, so dropping it would make the next login
+	// enroll a second device.
+	if ctx.Err() != nil && !fresh {
+		return cleanup, AuthCancelled, nil
+	}
+	authInfo.DeviceRegistrationData = deviceRegistrationData
+	if fresh {
 		// Fresh registration data: record when it was obtained so a confirmed
 		// device-authentication failure inside the replication window keeps it.
 		authInfo.DeviceRegistrationDataObtainedAt = time.Now().Unix()
@@ -3252,6 +3268,9 @@ func (b *Broker) maybeRegisterDevice(ctx context.Context, session *session, auth
 	if err := token.CacheAuthInfo(session.tokenPath, authInfo); err != nil {
 		log.Errorf(context.Background(), "Failed to store token: %s", err)
 		return cleanup, AuthDenied, unexpectedErrMsg("failed to store token")
+	}
+	if ctx.Err() != nil {
+		return cleanup, AuthCancelled, nil
 	}
 
 	return cleanup, "", nil
@@ -3295,7 +3314,14 @@ func registrationIsStale(authInfo *token.AuthCachedInfo, err error) bool {
 // fails, and is nil when the flow has no such fallback. Callers must return the
 // response to the client when the returned access mode is not empty, and
 // continue with their own flow when it is.
-func (b *Broker) handleGroupFetch(session *session, authInfo, cachedInfo *token.AuthCachedInfo, groups []info.Group, err error) (access string, data isAuthenticatedDataResponse) {
+func (b *Broker) handleGroupFetch(ctx context.Context, session *session, authInfo, cachedInfo *token.AuthCachedInfo, groups []info.Group, err error) (access string, data isAuthenticatedDataResponse) {
+	// A cancelled request must not act on the lookup result: the client
+	// already received AuthCancelled and no side effect of this login may
+	// still run, such as discarding the registration or using cached groups.
+	if ctx.Err() != nil {
+		log.Noticef(context.Background(), "Authentication request cancelled for user %q", session.username)
+		return AuthCancelled, nil
+	}
 	if err == nil {
 		// A successful lookup verifies the registration, so it is no longer
 		// fresh. Persist that now when it was fresh: the caller can return to

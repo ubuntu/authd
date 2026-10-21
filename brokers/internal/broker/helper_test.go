@@ -1,6 +1,7 @@
 package broker_test
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha512"
@@ -213,15 +214,14 @@ func newSessionForTests(t *testing.T, b *broker.Broker, username, mode string) (
 	return id, key
 }
 
-// newDeviceAuthBrokerForTests returns a broker that enrolls devices and whose
-// group lookup is provided by provider, plus a login session for it. The mock
-// token endpoint gives the first two token acquisitions the broker app
-// audience, which the device-auth flows need when they acquire a token again
-// after registering a device.
-func newDeviceAuthBrokerForTests(t *testing.T, provider *mockEntraAuthProvider) (b *broker.Broker, sessionID string) {
+// newRegisteringBrokerForTests returns a broker that enrolls devices and whose
+// group lookup is provided by provider. The mock token endpoint gives the first
+// two token acquisitions the broker app audience, which the device-auth flows
+// need when they acquire a token again after registering a device.
+func newRegisteringBrokerForTests(t *testing.T, provider providers.Provider) *broker.Broker {
 	t.Helper()
 
-	b = newBrokerForTests(t, &brokerForTestConfig{
+	return newBrokerForTests(t, &brokerForTestConfig{
 		Config:                broker.Config{DataDir: t.TempDir()},
 		ownerAllowed:          true,
 		firstUserBecomesOwner: true,
@@ -234,7 +234,14 @@ func newDeviceAuthBrokerForTests(t *testing.T, provider *mockEntraAuthProvider) 
 			},
 		},
 	})
+}
 
+// newDeviceAuthBrokerForTests returns a registering broker plus a login session
+// for it.
+func newDeviceAuthBrokerForTests(t *testing.T, provider *mockEntraAuthProvider) (b *broker.Broker, sessionID string) {
+	t.Helper()
+
+	b = newRegisteringBrokerForTests(t, provider)
 	sessionID, _ = newSessionForTests(t, b, "", "")
 	return b, sessionID
 }
@@ -339,6 +346,46 @@ func requireAuthModes(t *testing.T, b *broker.Broker, sessionID string, want ...
 		got = append(got, mode["id"])
 	}
 	require.Equal(t, want, got, "the client must be offered these modes, in this order")
+}
+
+// cancelWhileGroupLookupRuns starts an authentication whose group lookup blocks
+// until the test releases it, cancels the request while the lookup runs, and
+// asserts that the cancellation ends the request without waiting for the
+// lookup. Callers then assert that the cancelled request left no side effect
+// behind.
+func cancelWhileGroupLookupRuns(t *testing.T, b *broker.Broker, sessionID, authData string, groupsStarted, releaseGroups, groupsDone chan struct{}) {
+	t.Helper()
+
+	authDone := make(chan struct{})
+	var access, data string
+	var authErr error
+	go func() {
+		access, data, authErr = b.IsAuthenticated(sessionID, authData)
+		close(authDone)
+	}()
+
+	select {
+	case <-groupsStarted:
+	case <-time.After(5 * time.Second):
+		t.Fatal("group lookup did not start")
+	}
+
+	b.CancelIsAuthenticated(sessionID)
+	select {
+	case <-authDone:
+	case <-time.After(time.Second):
+		t.Fatal("cancelled authentication did not return")
+	}
+	require.Equal(t, broker.AuthCancelled, access)
+	require.Contains(t, data, "Authentication request cancelled")
+	require.ErrorIs(t, authErr, context.Canceled)
+
+	close(releaseGroups)
+	select {
+	case <-groupsDone:
+	case <-time.After(time.Second):
+		t.Fatal("group lookup did not finish")
+	}
 }
 
 func generateAndStoreCachedInfo(t *testing.T, options tokenOptions, path string) {

@@ -3,9 +3,11 @@
 package himmelblau
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/oauth2"
 )
 
 func TestDeserializeLoadableMachineKeyRejectsEmptyKey(t *testing.T) {
@@ -103,4 +105,16 @@ func TestCAuthOptionsMapping(t *testing.T) {
 	require.Equal(t, uint32(1), cAuthOptionPasswordless, "Passwordless is expected to be 1")
 	require.Equal(t, uint32(3), cAuthOptionPasswordlessSecurityKey, "PasswordlessSecurityKey is expected to be 3")
 	require.Equal(t, uint32(5), cAuthOptionNoDAGFallback, "NoDAGFallback is expected to be 5")
+}
+
+// Not parallel: it checks the package-wide registration mutex.
+func TestRegisterDeviceStopsWhenCancelled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, cleanup, err := RegisterDevice(ctx, &oauth2.Token{}, "tenant", "example.com")
+	require.ErrorIs(t, err, context.Canceled, "a cancelled request must not enroll a device")
+	require.Nil(t, cleanup)
+	require.True(t, deviceRegistrationMu.TryLock(), "the registration mutex must be released")
+	deviceRegistrationMu.Unlock()
 }
