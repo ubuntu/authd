@@ -828,11 +828,9 @@ After publishing a new release, the `stable-docs` branch should contain the same
    git push --force-with-lease origin stable-docs
    ```
 
-#### Point users to stable-docs in CONTRIBUTING.md
+### Check the documentation links
 
-In CONTRIBUTING.md, change `edge-docs` to `stable-docs` in the included links.
-
-Then delete this section from RELEASE.md.
+On `main`, check that the repository's links to the documentation site point at the released version (`stable-docs`), and change any that still point at `edge-docs`. Deliberate edge links, such as the README badge, stay as they are.
 
 ### Upload the source package to the Ubuntu archive
 
