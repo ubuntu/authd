@@ -282,3 +282,10 @@ func (b *Broker) HandleIsAuthenticated(ctx context.Context, sessionID string, au
 	}
 	return b.handleIsAuthenticated(ctx, &session, authData)
 }
+
+// RegistrationIsStale and DeviceRegistrationReplicationWindow expose the
+// registration staleness check and its cutoff, so tests can probe the boundary
+// with a fake clock.
+var RegistrationIsStale = registrationIsStale
+
+const DeviceRegistrationReplicationWindow = deviceRegistrationReplicationWindow

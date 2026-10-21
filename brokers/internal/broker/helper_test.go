@@ -1,6 +1,7 @@
 package broker_test
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha512"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/canonical/authd/brokers/internal/broker"
 	"github.com/canonical/authd/brokers/internal/broker/sessionmode"
+	"github.com/canonical/authd/brokers/internal/consts"
 	"github.com/canonical/authd/brokers/internal/providers"
 	"github.com/canonical/authd/brokers/internal/providers/info"
 	"github.com/canonical/authd/brokers/internal/providers/msentraid/himmelblau"
@@ -212,6 +214,92 @@ func newSessionForTests(t *testing.T, b *broker.Broker, username, mode string) (
 	return id, key
 }
 
+// newRegisteringBrokerForTests returns a broker that enrolls devices and whose
+// group lookup is provided by provider. The mock token endpoint gives the first
+// two token acquisitions the broker app audience, which the device-auth flows
+// need when they acquire a token again after registering a device.
+func newRegisteringBrokerForTests(t *testing.T, provider providers.Provider) *broker.Broker {
+	t.Helper()
+
+	return newBrokerForTests(t, &brokerForTestConfig{
+		Config:                broker.Config{DataDir: t.TempDir()},
+		ownerAllowed:          true,
+		firstUserBecomesOwner: true,
+		provider:              provider,
+		registerDevice:        true,
+		tokenHandlerOptions: &testutils.TokenHandlerOptions{
+			IDTokenClaims: []map[string]interface{}{
+				{"aud": consts.MicrosoftBrokerAppID},
+				{"aud": consts.MicrosoftBrokerAppID},
+			},
+		},
+	})
+}
+
+// newDeviceAuthBrokerForTests returns a registering broker plus a login session
+// for it.
+func newDeviceAuthBrokerForTests(t *testing.T, provider *mockEntraAuthProvider) (b *broker.Broker, sessionID string) {
+	t.Helper()
+
+	b = newRegisteringBrokerForTests(t, provider)
+	sessionID, _ = newSessionForTests(t, b, "", "")
+	return b, sessionID
+}
+
+// newEntraMFABrokerForTests returns a broker whose group lookup is provided by
+// provider, plus a login session for it. withDeviceRegistration enables device
+// registration for the flows that register a device during the login.
+func newEntraMFABrokerForTests(t *testing.T, provider *mockEntraAuthProvider, withDeviceRegistration bool) (b *broker.Broker, sessionID, key string) {
+	t.Helper()
+
+	b = newBrokerForTests(t, &brokerForTestConfig{
+		Config:                broker.Config{DataDir: t.TempDir()},
+		ownerAllowed:          true,
+		firstUserBecomesOwner: true,
+		provider:              provider,
+		issuerURL:             defaultIssuerURL,
+		registerDevice:        withDeviceRegistration,
+	})
+
+	sessionID, key = newSessionForTests(t, b, "", "")
+	return b, sessionID, key
+}
+
+// newDeviceAuthProviderForTests returns a mock Entra provider whose group
+// lookup fails with groupErr, or returns a single remote group when groupErr is
+// nil.
+func newDeviceAuthProviderForTests(groupErr error) *mockEntraAuthProvider {
+	return &mockEntraAuthProvider{
+		MockProvider: &testutils.MockProvider{
+			GetGroupsFunc: func() ([]info.Group, error) {
+				if groupErr != nil {
+					return nil, groupErr
+				}
+				return []info.Group{{Name: "remote-group"}}, nil
+			},
+		},
+	}
+}
+
+// newEntraMFAProviderForTests returns a mock Entra provider whose group lookup
+// fails with groupErr and whose MFA flow answers the code step.
+func newEntraMFAProviderForTests(t *testing.T, groupErr error) *mockEntraAuthProvider {
+	t.Helper()
+
+	provider := newDeviceAuthProviderForTests(groupErr)
+	provider.flowState = &himmelblau.MFAFlowState{}
+	provider.challengeInfo = &himmelblau.MFAChallengeInfo{
+		Message:           "Please type in the code displayed on your authenticator app from your device:",
+		Method:            "PhoneAppOTP",
+		PollingIntervalMs: 5000,
+		MaxPollAttempts:   10,
+	}
+	provider.mfaTokenResult = newMFATokenResult(generateCachedInfo(t, tokenOptions{
+		username: "test-user@email.com",
+		issuer:   defaultIssuerURL,
+	}).Token)
+	return provider
+}
 func encryptSecret(t *testing.T, secret, strKey string) string {
 	t.Helper()
 
@@ -258,6 +346,46 @@ func requireAuthModes(t *testing.T, b *broker.Broker, sessionID string, want ...
 		got = append(got, mode["id"])
 	}
 	require.Equal(t, want, got, "the client must be offered these modes, in this order")
+}
+
+// cancelWhileGroupLookupRuns starts an authentication whose group lookup blocks
+// until the test releases it, cancels the request while the lookup runs, and
+// asserts that the cancellation ends the request without waiting for the
+// lookup. Callers then assert that the cancelled request left no side effect
+// behind.
+func cancelWhileGroupLookupRuns(t *testing.T, b *broker.Broker, sessionID, authData string, groupsStarted, releaseGroups, groupsDone chan struct{}) {
+	t.Helper()
+
+	authDone := make(chan struct{})
+	var access, data string
+	var authErr error
+	go func() {
+		access, data, authErr = b.IsAuthenticated(sessionID, authData)
+		close(authDone)
+	}()
+
+	select {
+	case <-groupsStarted:
+	case <-time.After(5 * time.Second):
+		t.Fatal("group lookup did not start")
+	}
+
+	b.CancelIsAuthenticated(sessionID)
+	select {
+	case <-authDone:
+	case <-time.After(time.Second):
+		t.Fatal("cancelled authentication did not return")
+	}
+	require.Equal(t, broker.AuthCancelled, access)
+	require.Contains(t, data, "Authentication request cancelled")
+	require.ErrorIs(t, authErr, context.Canceled)
+
+	close(releaseGroups)
+	select {
+	case <-groupsDone:
+	case <-time.After(time.Second):
+		t.Fatal("group lookup did not finish")
+	}
 }
 
 func generateAndStoreCachedInfo(t *testing.T, options tokenOptions, path string) {

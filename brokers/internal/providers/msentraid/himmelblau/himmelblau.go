@@ -233,6 +233,12 @@ func RegisterDevice(
 	}
 	defer tpmCleanup()
 
+	// The wait for the mutex and the setup above can outlast the request.
+	// enrollDevice cannot be cancelled, so this is the last point to stop.
+	if err = ctx.Err(); err != nil {
+		return nil, nil, err
+	}
+
 	data, err := enrollDevice(brokerClientApp, token.RefreshToken, attrs, tpm, machineKey)
 	if err != nil {
 		return nil, nil, err
