@@ -265,9 +265,14 @@ fi
 mkdir -p "${TEST_RUNS_DIR}"
 ln -sf --no-target-directory "${OUTPUT_DIR}" "${TEST_RUNS_DIR}/${BROKER}-latest"
 
-# Set up YARF environment if not already set up
+# Set up YARF if its revision or the combined dependency lock has changed.
+# shellcheck source=yarf-env.sh
+source "${ROOT_DIR}/yarf-env.sh"
 YARF_DIR="${ROOT_DIR}/.yarf"
-if ! [ -f "${YARF_DIR}/.venv/bin/activate" ]; then
+YARF_ENVIRONMENT_REVISION_FILE="${YARF_DIR}/.venv/.authd-yarf-revision"
+# The marker lives inside the venv, so a missing marker also means no venv.
+if [ ! -f "${YARF_ENVIRONMENT_REVISION_FILE}" ] ||
+    ! grep -Fqx "$(yarf_environment_revision)" "${YARF_ENVIRONMENT_REVISION_FILE}"; then
     "${ROOT_DIR}/setup-yarf.sh"
 fi
 
