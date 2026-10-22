@@ -2,7 +2,7 @@ module github.com/canonical/authd/tools
 
 go 1.26.0
 
-toolchain go1.26.7
+toolchain go1.26.10
 
 require (
 	github.com/golang/protobuf v1.5.4
