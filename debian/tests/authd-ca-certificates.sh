@@ -18,6 +18,7 @@ unrelated=authd-ca-test.service
 cleanup() {
 	set +e
 	systemctl stop "$broker" "$other_app" "$inactive" "$unrelated"
+	systemctl disable --runtime "$broker"
 	for unit in "$broker" "$other_app" "$inactive" "$unrelated"; do
 		rm -f "/run/systemd/system/$unit"
 	done
@@ -39,6 +40,8 @@ StartLimitIntervalSec=0
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/bin/test ! -e $tmpdir/fail-$unit
+[Install]
+WantedBy=multi-user.target
 EOF
 done
 systemctl daemon-reload
@@ -106,6 +109,29 @@ update-ca-certificates --hooksdir "$tmpdir/hooks"
 [ "$(invocation "$other_app")" = "$other_app_id" ]
 check_untouched
 
+echo "Restoring the previous bundle after an offline update restarts brokers"
+previous_checksum=$(cat "$checksum_file")
+new_certificate offline
+update-ca-certificates --hooksdir "$tmpdir/empty-hooks"
+[ "$(sha256sum /etc/ssl/certs/ca-certificates.crt)" != "$previous_checksum" ]
+unshare --mount --propagation private sh -eu -s -- "$hook" <<'EOF'
+mount -t tmpfs tmpfs /run
+"$1" </dev/null
+EOF
+[ ! -e "$checksum_file" ]
+[ "$(invocation "$broker")" = "$broker_id" ]
+[ "$(invocation "$other_app")" = "$other_app_id" ]
+check_untouched
+systemctl restart "$broker" "$other_app"
+broker_id=$(invocation "$broker")
+other_app_id=$(invocation "$other_app")
+rm "$certificate"
+update-ca-certificates --hooksdir "$tmpdir/hooks"
+check_restarted
+[ "$(cat "$checksum_file")" = "$previous_checksum" ]
+broker_id=$(invocation "$broker")
+other_app_id=$(invocation "$other_app")
+
 echo "A removed package leaves the hook a no-op"
 unshare --mount --propagation private sh -eu -s -- "$hook" <<'EOF'
 mount --bind /dev/null /usr/bin/authctl
@@ -134,6 +160,36 @@ check_restarted
 broker_id=$(invocation "$broker")
 other_app_id=$(invocation "$other_app")
 
+echo "Failed service discovery invalidates the checksum before the bundle returns"
+previous_checksum=$(cat "$checksum_file")
+new_certificate discovery-failure
+update-ca-certificates --hooksdir "$tmpdir/empty-hooks"
+[ "$(sha256sum /etc/ssl/certs/ca-certificates.crt)" != "$previous_checksum" ]
+mkdir "$tmpdir/discovery-bin"
+cat >"$tmpdir/discovery-bin/systemctl" <<'EOF'
+#!/bin/sh
+exit 1
+EOF
+chmod +x "$tmpdir/discovery-bin/systemctl"
+if PATH="$tmpdir/discovery-bin:$PATH" "$hook" </dev/null >"$tmpdir/error" 2>&1; then
+	echo "E: the hook succeeded despite failed service discovery" >&2
+	exit 1
+fi
+grep -q "E: could not list active authd broker services" "$tmpdir/error"
+[ ! -e "$checksum_file" ]
+[ "$(invocation "$broker")" = "$broker_id" ]
+[ "$(invocation "$other_app")" = "$other_app_id" ]
+check_untouched
+systemctl restart "$broker" "$other_app"
+broker_id=$(invocation "$broker")
+other_app_id=$(invocation "$other_app")
+rm "$certificate"
+update-ca-certificates --hooksdir "$tmpdir/hooks"
+check_restarted
+[ "$(cat "$checksum_file")" = "$previous_checksum" ]
+broker_id=$(invocation "$broker")
+other_app_id=$(invocation "$other_app")
+
 echo "Added certificates restart active brokers, including different app names"
 new_certificate added
 update-ca-certificates --hooksdir "$tmpdir/hooks"
@@ -147,8 +203,7 @@ update-ca-certificates --hooksdir "$tmpdir/hooks" >"$tmpdir/update.log" 2>&1
 grep -q '^0 added, 0 removed; done.$' "$tmpdir/update.log"
 check_restarted
 
-echo "Failed restarts leave the checksum unchanged and do not stop other restarts"
-previous_checksum=$(cat "$checksum_file")
+echo "Failed restarts invalidate the checksum and do not stop other restarts"
 other_app_id=$(invocation "$other_app")
 touch "$tmpdir/fail-$broker"
 rm "$certificate"
@@ -158,7 +213,7 @@ if "$hook" </dev/null >"$tmpdir/error" 2>&1; then
 	exit 1
 fi
 grep -q "E: could not restart authd broker service $broker" "$tmpdir/error"
-[ "$(cat "$checksum_file")" = "$previous_checksum" ]
+[ ! -e "$checksum_file" ]
 [ "$(invocation "$other_app")" != "$other_app_id" ]
 check_untouched
 
@@ -170,6 +225,78 @@ broker_id=$(invocation "$broker")
 "$hook" </dev/null
 [ "$(invocation "$broker")" != "$broker_id" ]
 [ "$(cat "$checksum_file")" = "$(sha256sum /etc/ssl/certs/ca-certificates.crt)" ]
+
+echo "Restoring the previous bundle after a partial failure still restarts brokers"
+previous_checksum=$(cat "$checksum_file")
+other_app_id=$(invocation "$other_app")
+new_certificate partial-failure
+touch "$tmpdir/fail-$broker"
+update-ca-certificates --hooksdir "$tmpdir/empty-hooks"
+[ "$(sha256sum /etc/ssl/certs/ca-certificates.crt)" != "$previous_checksum" ]
+if "$hook" </dev/null >"$tmpdir/error" 2>&1; then
+	echo "E: the hook succeeded despite a failed broker restart" >&2
+	exit 1
+fi
+grep -q "E: could not restart authd broker service $broker" "$tmpdir/error"
+[ ! -e "$checksum_file" ]
+[ "$(invocation "$other_app")" != "$other_app_id" ]
+check_untouched
+rm "$certificate" "$tmpdir/fail-$broker"
+update-ca-certificates --hooksdir "$tmpdir/empty-hooks"
+[ "$(sha256sum /etc/ssl/certs/ca-certificates.crt)" = "$previous_checksum" ]
+systemctl reset-failed "$broker"
+systemctl start "$broker"
+broker_id=$(invocation "$broker")
+other_app_id=$(invocation "$other_app")
+"$hook" </dev/null
+check_restarted
+[ "$(cat "$checksum_file")" = "$previous_checksum" ]
+
+echo "Policy-denied restarts invalidate the checksum so they can be retried"
+mkdir -p "$tmpdir/policy/usr/sbin"
+cat >"$tmpdir/policy/usr/sbin/policy-rc.d" <<'EOF'
+#!/bin/sh
+exit 101
+EOF
+chmod +x "$tmpdir/policy/usr/sbin/policy-rc.d"
+broker_id=$(invocation "$broker")
+other_app_id=$(invocation "$other_app")
+new_certificate policy
+update-ca-certificates --hooksdir "$tmpdir/empty-hooks"
+if DPKG_ROOT="$tmpdir/policy" "$hook" </dev/null >"$tmpdir/error" 2>&1; then
+	echo "E: the hook succeeded despite policy-denied broker restarts" >&2
+	exit 1
+fi
+grep -q "E: authd broker service $broker is still running" "$tmpdir/error"
+[ ! -e "$checksum_file" ]
+[ "$(invocation "$broker")" = "$broker_id" ]
+[ "$(invocation "$other_app")" = "$other_app_id" ]
+check_untouched
+"$hook" </dev/null
+check_restarted
+[ "$(cat "$checksum_file")" = "$(sha256sum /etc/ssl/certs/ca-certificates.crt)" ]
+
+echo "A broker stopped after discovery is not started again, even when enabled"
+mkdir "$tmpdir/bin"
+real_invoke=$(command -v deb-systemd-invoke)
+cat >"$tmpdir/bin/deb-systemd-invoke" <<EOF
+#!/bin/sh
+set -eu
+if [ "\$2" = "$broker" ]; then
+	systemctl stop "\$2"
+fi
+exec "$real_invoke" "\$@"
+EOF
+chmod +x "$tmpdir/bin/deb-systemd-invoke"
+systemctl enable --runtime "$broker"
+other_app_id=$(invocation "$other_app")
+new_certificate stopped
+update-ca-certificates --hooksdir "$tmpdir/empty-hooks"
+PATH="$tmpdir/bin:$PATH" "$hook" </dev/null
+check_inactive "$broker"
+[ "$(invocation "$other_app")" != "$other_app_id" ]
+[ "$(cat "$checksum_file")" = "$(sha256sum /etc/ssl/certs/ca-certificates.crt)" ]
+check_untouched
 
 echo "An empty list of active brokers still records the updated bundle"
 systemctl stop "$broker" "$other_app"

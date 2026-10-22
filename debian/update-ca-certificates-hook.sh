@@ -11,6 +11,9 @@ fi
 if sha256sum --status -c "$checksum_file" 2>/dev/null; then
 	exit 0
 fi
+
+# A failed reload must not let a later return to the old bundle skip restarts.
+rm -f "$checksum_file"
 checksum=$(sha256sum /etc/ssl/certs/ca-certificates.crt)
 
 active_units=$(systemctl show 'snap.authd-*.service' \
@@ -24,9 +27,25 @@ active_units=$(systemctl show 'snap.authd-*.service' \
 
 status=0
 for unit in $active_units; do
+	before=$(systemctl show "$unit" --property=ActiveState --property=InvocationID) || {
+		echo "E: could not inspect authd broker service $unit" >&2
+		status=1
+		continue
+	}
 	echo "Restarting $unit to reload the updated CA certificates."
-	if ! deb-systemd-invoke restart "$unit"; then
+	if ! deb-systemd-invoke try-restart "$unit"; then
 		echo "E: could not restart authd broker service $unit" >&2
+		status=1
+		continue
+	fi
+	after=$(systemctl show "$unit" --property=ActiveState --property=InvocationID) || {
+		echo "E: could not inspect authd broker service $unit" >&2
+		status=1
+		continue
+	}
+	# policy-rc.d can deny a restart while deb-systemd-invoke returns success.
+	if [ "$before" = "$after" ] && printf '%s\n' "$after" | grep -qx 'ActiveState=active'; then
+		echo "E: authd broker service $unit is still running without reloading CA certificates" >&2
 		status=1
 	fi
 done
