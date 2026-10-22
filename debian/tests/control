@@ -6,3 +6,8 @@ Depends: @builddeps@
 Test-Command: debian/tests/rename-authd-ppa-source.sh
 Features: test-name=ppa_source_rename
 Depends: authd
+
+Test-Command: debian/tests/authd-ca-certificates.sh
+Features: test-name=ca_certificates
+Restrictions: needs-root, isolation-container, breaks-testbed, allow-stderr
+Depends: authd, ca-certificates, mount, openssl, systemd-sysv, util-linux
