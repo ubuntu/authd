@@ -1708,9 +1708,12 @@ func (b *Broker) passwordAuth(ctx context.Context, session *session, secret stri
 		var data isAuthenticatedDataResponse
 		cleanup, access, data = b.maybeRegisterDevice(ctx, session, authInfo, authInfo.Token, authInfo.DeviceRegistrationData)
 		if access == AuthDenied && reenrolling {
-			log.Errorf(context.Background(), "Could not enroll the device again for user %q", session.username)
-			session.nextAuthModes = reauthModes
-			return AuthNext, data
+			registrationErr, isRegistrationFailure := data.(errorMessage)
+			if isRegistrationFailure && registrationErr.Message == "Error registering device" {
+				log.Errorf(context.Background(), "Could not enroll the device again for user %q", session.username)
+				session.nextAuthModes = reauthModes
+				return AuthNext, data
+			}
 		}
 		return access, data
 	}
