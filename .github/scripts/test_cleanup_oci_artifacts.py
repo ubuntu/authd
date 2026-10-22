@@ -13,6 +13,7 @@ from urllib.error import HTTPError, URLError
 sys.path.insert(0, str(Path(__file__).parent))
 
 from cleanup_oci_artifacts import (  # noqa: E402, I001
+    DOWNLOAD_PROTECTION_MESSAGE,
     GitHubApi,
     MAX_ERROR_BODY_BYTES,
     PACKAGE_SLUGS,
@@ -384,6 +385,76 @@ class CleanupApiErrorTest(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertTrue(delete_error.fp.closed)
         self.assertEqual(stderr.getvalue(), "")
+
+    def test_retains_download_protected_versions_but_reports_other_delete_errors(self):
+        cases = [
+            (400, {"message": DOWNLOAD_PROTECTION_MESSAGE}, True),
+            (
+                400,
+                {"message": DOWNLOAD_PROTECTION_MESSAGE.replace("5000", "10000")},
+                False,
+            ),
+            (400, {"message": "Invalid package version"}, False),
+            (403, {"message": DOWNLOAD_PROTECTION_MESSAGE}, False),
+            (400, {}, False),
+            (400, [DOWNLOAD_PROTECTION_MESSAGE], False),
+            (400, b"not JSON", False),
+        ]
+        for status, body, protected in cases:
+            with self.subTest(status=status, body=body):
+                now = datetime.now(timezone.utc)
+                candidates = [
+                    dict(version(now - timedelta(days=30), ["stale"]), id=i)
+                    for i in (1, 2)
+                ]
+                error = HTTPError(
+                    "https://api.github.com/test",
+                    status,
+                    "Request failed",
+                    None,
+                    io.BytesIO(
+                        body if isinstance(body, bytes) else json.dumps(body).encode()
+                    ),
+                )
+                stderr = io.StringIO()
+                stdout = io.StringIO()
+
+                with (
+                    patch.dict(
+                        os.environ,
+                        {"GITHUB_REPOSITORY": "canonical/authd", "GH_TOKEN": "token"},
+                    ),
+                    patch("cleanup_oci_artifacts.PACKAGE_SLUGS", ("first", "second")),
+                    patch("cleanup_oci_artifacts.GitHubApi") as github_api,
+                    redirect_stderr(stderr),
+                    redirect_stdout(stdout),
+                ):
+                    api = github_api.return_value
+                    api.pages.side_effect = [[candidates[0]], [candidates[1]]]
+                    api.request.side_effect = [
+                        (candidates[0], None),
+                        error,
+                        (candidates[1], None),
+                        (None, None),
+                    ]
+                    result = main()
+
+                self.assertEqual(result, 0 if protected else 1)
+                self.assertEqual(api.pages.call_count, 2)
+                self.assertEqual(api.request.call_count, 4)
+                self.assertTrue(error.fp.closed)
+                self.assertIn("Deleted authd/second version 2", stdout.getvalue())
+                self.assertNotIn("Deleted authd/first version 1", stdout.getvalue())
+                if protected:
+                    self.assertIn("Retained authd/first version 1", stderr.getvalue())
+                    self.assertIn(DOWNLOAD_PROTECTION_MESSAGE, stderr.getvalue())
+                    self.assertNotIn("Failed to", stderr.getvalue())
+                else:
+                    self.assertIn(f"HTTP {status}", stderr.getvalue())
+                    if isinstance(body, dict) and "message" in body:
+                        self.assertIn(body["message"], stderr.getvalue())
+                    elif isinstance(body, bytes):
+                        self.assertIn(body.decode(), stderr.getvalue())
 
     def test_pages_reports_response_type_and_api_message(self):
         api = GitHubApi("token")
