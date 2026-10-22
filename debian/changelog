@@ -1,8 +1,8 @@
-authd (0.7.1+git261020+3898+f90b809b) noble; urgency=medium
+authd (0.7.1+git261022+1513+06c26618) noble; urgency=medium
 
-  * Github build. Run id: 39483920157. Run number: 3898.
+  * Github build. Run id: 39739750039. Run number: 1513.
 
- -- Noor <nooreldeen.mansour@canonical.com>  Tue, 20 Oct 2026 19:31:55 +0000
+ -- adombeck <18482300+adombeck@users.noreply.github.com>  Thu, 22 Oct 2026 07:21:15 +0000
 
 authd (0.7.1) stonking; urgency=medium
 
