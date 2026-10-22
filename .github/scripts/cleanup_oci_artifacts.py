@@ -21,6 +21,10 @@ MAX_ERROR_BODY_BYTES = 1024
 MAX_ATTEMPTS = 3
 RETRY_BACKOFF_SECONDS = 1
 RATE_LIMIT_FALLBACK_DELAY_SECONDS = 60
+DOWNLOAD_PROTECTION_MESSAGE = (
+    "Publicly visible package versions with more than 5000 downloads cannot be "
+    "deleted. Contact GitHub support for further assistance."
+)
 PACKAGE_SLUGS = (
     "authd-msentraid-snap",
     "authd-google-snap",
@@ -53,6 +57,17 @@ def _read_http_error_body(error: HTTPError) -> bytes:
     body = error.read()
     error.read = BytesIO(body).read
     return body
+
+
+def _is_download_protected(error: HTTPError) -> bool:
+    if error.code != 400:
+        return False
+    try:
+        body = json.loads(_read_http_error_body(error))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return False
+    # Unknown messages must fail visibly rather than hide unrelated API errors.
+    return isinstance(body, dict) and body.get("message") == DOWNLOAD_PROTECTION_MESSAGE
 
 
 def _is_retryable_http_error(error: HTTPError) -> bool:
@@ -245,9 +260,18 @@ def main() -> int:
             try:
                 api.request(version_url, method="DELETE")
             except (HTTPError, OSError) as error:
-                if isinstance(error, HTTPError) and error.code == 404:
-                    error.close()
-                    continue
+                if isinstance(error, HTTPError):
+                    if error.code == 404:
+                        error.close()
+                        continue
+                    if _is_download_protected(error):
+                        print(
+                            f"Warning: Retained {repository_name}/{package_slug} "
+                            f"version {version['id']}: {DOWNLOAD_PROTECTION_MESSAGE}",
+                            file=sys.stderr,
+                        )
+                        error.close()
+                        continue
                 report_api_error(
                     f"delete {repository_name}/{package_slug} version {version['id']}",
                     error,
