@@ -50,4 +50,10 @@ if [ configure = "$action" ]; then
        command -v /usr/share/update-notifier/notify-reboot-required >/dev/null; then
             /usr/share/update-notifier/notify-reboot-required
     fi
+
+    if [ -x /etc/ca-certificates/update.d/authd ] && \
+       [ ! -e /var/lib/authd/ca-certificates.sha256 ]; then
+        /etc/ca-certificates/update.d/authd </dev/null ||
+            echo "W: could not initialize the authd CA bundle checksum; the next CA update will retry" >&2
+    fi
 fi
