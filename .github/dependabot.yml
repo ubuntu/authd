@@ -84,6 +84,9 @@ updates:
       interval: "weekly"
       day: "thursday"
       time: "09:00"
+    groups:
+      e2e-python:
+        patterns: ["*"]
     commit-message:
       prefix: "deps(e2e)"
 
