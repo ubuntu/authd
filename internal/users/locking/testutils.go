@@ -116,6 +116,8 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 	// It uses a buffer of size 1 so that it can be locked exactly once
 	// and then blocks until the unlock operation is called.
 	lockCh := make(chan struct{}, 1)
+	stopped := make(chan struct{})
+	var stateMu sync.Mutex
 
 	overriddenWriteLockImpl = append(overriddenWriteLockImpl, writeLockImpl)
 	writeLockImpl = func() error {
@@ -124,12 +126,23 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 
 			select {
 			case lockCh <- struct{}{}:
-				log.Debug(ctx, "TestOverrideExternallyLocked: Local entries external lock released!")
+			case <-stopped:
+				return ErrLockTimeout
 			case <-time.After(maxWait):
 				return fmt.Errorf("failed waiting for %v: %w", maxWait, ErrLockTimeout)
 			}
 
-			if defaultMock.overrideLocked.CompareAndSwap(false, true) {
+			stateMu.Lock()
+			select {
+			case <-stopped:
+				stateMu.Unlock()
+				return ErrLockTimeout
+			default:
+			}
+			log.Debug(ctx, "TestOverrideExternallyLocked: Local entries external lock released!")
+			locked := defaultMock.overrideLocked.CompareAndSwap(false, true)
+			stateMu.Unlock()
+			if locked {
 				log.Debug(ctx, "TestOverrideExternallyLocked: Local entries locked!")
 				break
 			}
@@ -161,14 +174,25 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 		require.NoError(t, err, "Unlocking should be allowed")
 	}
 
-	t.Cleanup(cleanup)
+	t.Cleanup(func() {
+		// A timed-out WriteLock may still have a pending mock lock attempt.
+		stateMu.Lock()
+		defer stateMu.Unlock()
+		close(stopped)
+		cleanup()
+	})
 
 	err := writeLockImpl()
 	require.NoError(t, err, "Locking should be allowed")
 
 	go func() {
-		<-ctx.Done()
-		cleanup()
+		select {
+		case <-ctx.Done():
+			stateMu.Lock()
+			defer stateMu.Unlock()
+			cleanup()
+		case <-stopped:
+		}
 	}()
 }
 
