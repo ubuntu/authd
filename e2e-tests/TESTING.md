@@ -118,6 +118,17 @@ environment.
 date. After updating the YARF submodule checkout, run `cd e2e-tests && uv lock`
 and commit the refreshed `uv.lock` together with the submodule update.
 
+## Formatting Robot Framework files
+
+CI checks the test suites and shared resources with the locked version of
+Robocop. From the repository root, install and run the formatter with `uv`:
+
+```bash
+git submodule update --init --depth=1 e2e-tests/.yarf
+uv sync --project e2e-tests --locked --only-group robocop --no-install-project --no-install-workspace
+uv run --project e2e-tests --no-sync robocop format --no-cache e2e-tests/tests e2e-tests/resources
+```
+
 ## Running the tests
 
 ```bash
